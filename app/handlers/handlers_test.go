@@ -2,19 +2,17 @@
 package handlers
 
 import (
-	"bytes"
 	"fmt"
 	"net/http"
 	"net/http/httputil"
+	"net/url"
 	"testing"
 )
 
 func TestHealthCheckHandler(t *testing.T) {
 
-	data := []byte(`{"url":"http://google.com"}`)
-	// t.Error(string(data))
-	r := bytes.NewReader(data)
-	resp, err := http.Post("http://localhost/enc/", "application/json", r)
+	data := url.Values{"url": {"http://google.com"}}
+	resp, err := http.PostForm("http://localhost/enc/", data)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -24,6 +22,6 @@ func TestHealthCheckHandler(t *testing.T) {
 	if err != nil {
 		fmt.Println(err)
 	}
-	t.Error("\nRESP DUMP: + \n" + string(respDump))
+	t.Error("\nRESP DUMP !!: + \n" + string(respDump))
 
 }

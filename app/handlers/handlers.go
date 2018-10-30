@@ -14,6 +14,8 @@ func EncodeHandler(storage storages.IStorage) http.Handler {
 		if url := r.PostFormValue("url"); url != "" {
 			log.Println("URL IS: %d " + url)
 			w.Write([]byte(storage.Save(url)))
+		} else {
+			w.Write([]byte("TETREWTWS!!"))
 		}
 	}
 	return http.HandlerFunc(handleFunc)

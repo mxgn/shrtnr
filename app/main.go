@@ -14,9 +14,10 @@ func main() {
 	http.Handle("/", r)
 	fmt.Println("Starting up on 8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
 // Hello (w http.ResponseWriter, req *http.Request) {
 func Hello(w http.ResponseWriter, req *http.Request) {
-	fmt.Fprintln(w, "Hello world!")
+	fmt.Fprintln(w, "Hello world!!")
 }

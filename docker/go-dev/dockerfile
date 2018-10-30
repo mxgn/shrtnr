@@ -1,0 +1,26 @@
+FROM golang:alpine
+
+COPY root /
+# RUN dos2unix /entrypoint.sh
+
+RUN apk add --no-cache ca-certificates \
+    bash \
+    dpkg \
+    gcc \
+    git \
+    musl-dev 
+
+ENV GOPATH /go
+ENV PATH $GOPATH/bin:/usr/local/go/bin:$PATH
+
+RUN mkdir -p "$GOPATH/src" "$GOPATH/bin" \
+    && chmod -R 777 "$GOPATH" \
+    && chmod +x /entrypoint.sh
+
+RUN go get github.com/tockins/realize
+
+WORKDIR $GOPATH
+ENTRYPOINT ["/entrypoint.sh"]
+
+CMD ["realize", "start"]
+# CMD ["/bin/bash", "-x", "realize", "start"]

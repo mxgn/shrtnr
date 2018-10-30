@@ -1,4 +1,4 @@
-version: '3'
+version: "3"
 
 services:
   app:
@@ -6,9 +6,16 @@ services:
     build: "./docker/go-dev"
     ports:
       - "80:8080"
-      - "5002:5002"
     volumes:
       - ".:${GO_PROJECT_DIR}"
       - "$GOPATH/src:/go/src"
+    links:
+      - redis
     environment:
+      PORT: 8080
+      REDIS_URL: redis:6379
       GO_WORK_DIR: "${GO_PROJECT_DIR}/app"
+
+  redis:
+    container_name: redis
+    image: redis:alpine

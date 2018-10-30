@@ -1,23 +1,31 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
+	"os"
 
-	"github.com/gorilla/mux"
+	"github.com/mxgn/url-shrtnr/app/handlers"
+	"github.com/mxgn/url-shrtnr/app/storages"
 )
 
 func main() {
-	r := mux.NewRouter()
-	r.HandleFunc("/", Hello)
-	http.Handle("/", r)
-	fmt.Println("Starting up on 8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
 
-}
+	storage := &storages.Redis{}
+	if err := storage.Init(); err != nil {
+		log.Fatal(err)
+	}
 
-// Hello (w http.ResponseWriter, req *http.Request) {
-func Hello(w http.ResponseWriter, req *http.Request) {
-	fmt.Fprintln(w, "Hello world!")
+	http.Handle("/", handlers.RedirectHandler(storage))
+	http.Handle("/enc/", handlers.EncodeHandler(storage))
+	http.Handle("/dec/", handlers.DecodeHandler(storage))
+
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+	if err := http.ListenAndServe(":"+port, nil); err != nil {
+		log.Fatal(err)
+	}
+
 }

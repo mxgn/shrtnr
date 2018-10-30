@@ -1,7 +1,7 @@
 FROM golang:alpine
 
 COPY root /
-# RUN dos2unix /entrypoint.sh
+RUN dos2unix /entrypoint.sh
 
 RUN apk add --no-cache ca-certificates \
     bash \

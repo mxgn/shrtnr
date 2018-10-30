@@ -5,8 +5,10 @@ services:
     container_name: "app"
     build: "./docker/go-dev"
     ports:
-      - "8080:8080"
+      - "80:8080"
+      - "5002:5002"
     volumes:
       - ".:${GO_PROJECT_DIR}"
+      - "$GOPATH/src:/go/src"
     environment:
       GO_WORK_DIR: "${GO_PROJECT_DIR}/app"

@@ -1,6 +1,6 @@
 settings:
   legacy:
-    force: false
+    force: true
     interval: 0s
 server:
   status: false
@@ -16,7 +16,7 @@ schema:
   watcher:
     paths:
     - /
-    - ./../common
+    # - ./../common
     extensions:
     - go
     - html

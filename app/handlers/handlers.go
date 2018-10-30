@@ -2,6 +2,7 @@
 package handlers
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/mxgn/url-shrtnr/app/storages"
@@ -11,6 +12,7 @@ import (
 func EncodeHandler(storage storages.IStorage) http.Handler {
 	handleFunc := func(w http.ResponseWriter, r *http.Request) {
 		if url := r.PostFormValue("url"); url != "" {
+			log.Println("URL IS: %d " + url)
 			w.Write([]byte(storage.Save(url)))
 		}
 	}

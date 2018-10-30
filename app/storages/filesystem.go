@@ -1,0 +1,50 @@
+package storages
+
+import (
+	"io/ioutil"
+	"os"
+	"path/filepath"
+	"strconv"
+	"sync"
+)
+
+//Filesystem struct {
+type Filesystem struct {
+	Root string
+	sync.RWMutex
+}
+
+//Init (root string) error {
+func (s *Filesystem) Init(root string) error {
+	s.Root = root
+	return os.MkdirAll(s.Root, 0744)
+}
+
+//Code () string {
+func (s *Filesystem) Code() string {
+	s.Lock()
+	files, _ := ioutil.ReadDir(s.Root)
+	s.Unlock()
+
+	return strconv.FormatUint(uint64(len(files)+1), 36)
+}
+
+//Save (url string) string {
+func (s *Filesystem) Save(url string) string {
+	code := s.Code()
+
+	s.Lock()
+	ioutil.WriteFile(filepath.Join(s.Root, code), []byte(url), 0744)
+	s.Unlock()
+
+	return code
+}
+
+//Load (code string) (string, error) {
+func (s *Filesystem) Load(code string) (string, error) {
+	s.Lock()
+	urlBytes, err := ioutil.ReadFile(filepath.Join(s.Root, code))
+	s.Unlock()
+
+	return string(urlBytes), err
+}

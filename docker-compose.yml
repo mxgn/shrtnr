@@ -8,17 +8,41 @@ services:
       - 80:8080
       - 5002:5002
     volumes:
-      - ".:${GO_PROJECT_DIR}"
-      - "$GOPATH/src:/go/src"
+      - .:${GO_PROJECT_DIR}
+      - $GOPATH/src:/go/src
     links:
-      - redis
+      - postgres
     environment:
       PORT: 8080
-      REDIS_URL: redis:6379
-      GO_WORK_DIR: "${GO_PROJECT_DIR}/app"
+      # REDIS_URL: redis:6379
+      GO_WORK_DIR: ${GO_PROJECT_DIR}/app
+      PG_URL: postgres:5432
 
-  redis:
-    container_name: redis
-    image: redis:alpine
+  # redis:
+  #   container_name: redis
+  #   image: redis:alpine
+  #   volumes:
+  #     - ./data/redis:/data
+
+  postgres:
+    container_name: postgres
+    image: postgres
+    restart: always
+    ports:
+      - 5432:5432
     volumes:
-      - ./data/redis:/data
+      - postgres_database:/var/lib/postgresql/data:Z
+    environment:
+      POSTGRES_USER: pguser
+      POSTGRES_PASSWORD: pguser
+      POSTGRES_DB: pgdb
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
+
+volumes:
+  postgres_database:
+    external: true

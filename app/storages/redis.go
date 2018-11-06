@@ -40,5 +40,5 @@ func (s *Redis) Save(url string) string {
 //Load (code string) (string, error) {
 func (s *Redis) Load(code string) (string, error) {
 
-	return string("dummy"), nil
+	return string("dummyfdgfdgdfgfdgfdgfdgfd"), nil
 }

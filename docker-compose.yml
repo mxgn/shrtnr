@@ -26,23 +26,17 @@ services:
 
   postgres:
     container_name: postgres
-    image: postgres
+    image: squbs/postgres-10.5-alpine
     restart: always
     ports:
       - 5432:5432
-    volumes:
-      - postgres_database:/var/lib/postgresql/data:Z
-    environment:
-      POSTGRES_USER: pguser
-      POSTGRES_PASSWORD: pguser
-      POSTGRES_DB: pgdb
+    # volumes:
+    #   - postgres_database:/var/lib/postgresql/data:Z
+    # environment:
+    #   POSTGRES_USER: pguser
+    #   POSTGRES_PASSWORD: pguser
+    #   POSTGRES_DB: pgdb
 
-  adminer:
-    image: adminer
-    restart: always
-    ports:
-      - 8080:8080
-
-volumes:
-  postgres_database:
-    external: true
+# volumes:
+#   postgres_database:
+#     external: true

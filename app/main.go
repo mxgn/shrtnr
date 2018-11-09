@@ -1,31 +1,44 @@
 package main
 
 import (
-	"log"
-	"net/http"
-	"os"
+	"strconv"
 
-	"github.com/mxgn/url-shrtnr/app/handlers"
-	"github.com/mxgn/url-shrtnr/app/storages"
+	"github.com/mxgn/url-shrtnr/app/storages/postgres"
 )
 
 func main() {
 
-	storage := &storages.Redis{}
-	if err := storage.Init(); err != nil {
-		log.Fatal(err)
-	}
+	// storage := &storages.Redis{}
+	// if err := storage.Init(); err != nil {
+	// 	log.Fatal(err)
+	// }
 
-	http.Handle("/", handlers.RedirectHandler(storage))
-	http.Handle("/enc/", handlers.EncodeHandler(storage))
-	http.Handle("/dec/", handlers.DecodeHandler(storage))
+	storage := &postgres.Pgdb{}
+	storage.Init(postgres.Config{
+		Host:   "localhost",
+		Port:   "5432",
+		User:   "postgres",
+		Pass:   "",
+		Dbname: "postgres"})
 
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080"
+	storage.CreateSchema()
+	for i := 0; i < 1000; i++ {
+		storage.Save("str" + strconv.Itoa(i))
 	}
-	if err := http.ListenAndServe(":"+port, nil); err != nil {
-		log.Fatal(err)
-	}
+	// storage.Save("sdfsdfsd")
+
+	// db.Exec(`DROP TABLE URL_TBL`)
+
+	// http.Handle("/", handlers.RedirectHandler(env))
+	// http.Handle("/enc/", handlers.EncodeHandler(env))
+	// http.Handle("/dec/", handlers.DecodeHandler(env))
+
+	// port := os.Getenv("PORT")
+	// if port == "" {
+	// 	port = "8080"
+	// }
+	// if err := http.ListenAndServe(":"+port, nil); err != nil {
+	// 	log.Fatal(err)
+	// }
 
 }

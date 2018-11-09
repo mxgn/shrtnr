@@ -11,12 +11,12 @@ services:
       - .:${GO_PROJECT_DIR}
       - $GOPATH/src:/go/src
     links:
-      - postgres
+      - pgdb
     environment:
       PORT: 8080
       # REDIS_URL: redis:6379
       GO_WORK_DIR: ${GO_PROJECT_DIR}/app
-      PG_URL: postgres:5432
+      PG_URL: pgdb:5432
 
   # redis:
   #   container_name: redis
@@ -24,8 +24,8 @@ services:
   #   volumes:
   #     - ./data/redis:/data
 
-  postgres:
-    container_name: postgres
+  pgdb:
+    container_name: pgdb
     image: squbs/postgres-10.5-alpine
     restart: always
     ports:

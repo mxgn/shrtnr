@@ -16,7 +16,6 @@ schema:
     watcher:
       paths:
         - /
-        - ./../common
       extensions:
         - go
         - html
@@ -27,3 +26,5 @@ schema:
         - .git
         - .realize
         - vendor
+        - docker
+        - data

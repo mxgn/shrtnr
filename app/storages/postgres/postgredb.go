@@ -27,13 +27,13 @@ func (r *Pgdb) Init(cfg Config) {
 		"user=%s password=%s dbname=%s host=%s port=%s sslmode=disable",
 		cfg.User, cfg.Pass, cfg.Dbname, cfg.Host, cfg.Port))
 	if err != nil {
-		log.Fatalln(err)
+		panic(err)
 	}
 
 	r.Db = db
 
 	if err = r.Db.Ping(); err != nil {
-		log.Fatalln(err)
+		panic(err)
 	}
 }
 
@@ -64,10 +64,20 @@ func (r *Pgdb) Code() string { return "nil" }
 
 func (r *Pgdb) Save(longUrl string) string {
 
-	stmt := `INSERT INTO URL_TBL (id, short, url) VALUES ($1, $2, $3)`
+	short := ""
+	stmt := `SELECT short from URL_TBL WHERE URL = $1`
+	if err := r.Db.QueryRow(stmt, longUrl).Scan(&short); err != nil {
+		fmt.Println(err)
+	}
+	if short != "" {
+		fmt.Printf("SHORT ENTRY ALREADY EXISTS: %v", short)
+		return short
+	}
+
+	stmt = `INSERT INTO URL_TBL (id, short, url) VALUES ($1, $2, $3)`
 
 	id := r.GetNextId()
-	short := algorithm.Encode(id)
+	short = algorithm.Encode(id)
 
 	res, err := r.Db.Exec(stmt, id, short, longUrl)
 	if err != nil {

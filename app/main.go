@@ -1,8 +1,6 @@
 package main
 
 import (
-	"strconv"
-
 	"github.com/mxgn/url-shrtnr/app/storages/postgres"
 )
 
@@ -15,16 +13,19 @@ func main() {
 
 	storage := &postgres.Pgdb{}
 	storage.Init(postgres.Config{
-		Host:   "localhost",
+		Host:   "pgdb",
 		Port:   "5432",
 		User:   "postgres",
 		Pass:   "",
 		Dbname: "postgres"})
 
 	storage.CreateSchema()
-	for i := 0; i < 1000; i++ {
-		storage.Save("str" + strconv.Itoa(i))
-	}
+
+	storage.Save("test1")
+	storage.Save("test2")
+	// for i := 0; i < 1000; i++ {
+	// storage.Save("str" + strconv.Itoa(i))
+	// }
 	// storage.Save("sdfsdfsd")
 
 	// db.Exec(`DROP TABLE URL_TBL`)

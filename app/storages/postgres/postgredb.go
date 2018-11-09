@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/douglasmakey/ursho/base62"
 	_ "github.com/lib/pq"
+	"github.com/mxgn/url-shrtnr/app/algorithm"
 )
 
 type Pgdb struct {
@@ -67,7 +67,7 @@ func (r *Pgdb) Save(longUrl string) string {
 	stmt := `INSERT INTO URL_TBL (id, short, url) VALUES ($1, $2, $3)`
 
 	id := r.GetNextId()
-	short := base62.Encode(id)
+	short := algorithm.Encode(id)
 
 	res, err := r.Db.Exec(stmt, id, short, longUrl)
 	if err != nil {

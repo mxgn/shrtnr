@@ -14,7 +14,12 @@ govendor init
 govendor add +external
 ```
 
-## run only one detached service:
+## run only one detached database container:
 ```sh
 docker-compose up -d --no-deps pgdb
+```
+
+## run only application container:
+```sh
+docker-compose up --no-deps ap
 ```

@@ -3,7 +3,7 @@ settings:
     force: true
     interval: 0s
 server:
-  status: true
+  status: false
   open: false
   port: 5002
   host: localhost

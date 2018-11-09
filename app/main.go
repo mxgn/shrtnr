@@ -1,15 +1,14 @@
 package main
 
 import (
+	"log"
+
 	"github.com/mxgn/url-shrtnr/app/storages/postgres"
 )
 
 func main() {
 
-	// storage := &storages.Redis{}
-	// if err := storage.Init(); err != nil {
-	// 	log.Fatal(err)
-	// }
+	log.SetFlags(log.Lshortfile &^ (log.Ldate | log.Ltime))
 
 	storage := &postgres.Pgdb{}
 	storage.Init(postgres.Config{
@@ -19,16 +18,9 @@ func main() {
 		Pass:   "",
 		Dbname: "postgres"})
 
-	storage.CreateSchema()
-
-	storage.Save("test1")
-	storage.Save("test2")
-	// for i := 0; i < 1000; i++ {
-	// storage.Save("str" + strconv.Itoa(i))
-	// }
-	// storage.Save("sdfsdfsd")
-
-	// db.Exec(`DROP TABLE URL_TBL`)
+	// storage.Db.Exec(`DROP TABLE URL_TBL`)
+	// storage.CreateSchema()
+	// storage.Save("test112")
 
 	// http.Handle("/", handlers.RedirectHandler(env))
 	// http.Handle("/enc/", handlers.EncodeHandler(env))

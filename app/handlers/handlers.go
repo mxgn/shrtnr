@@ -11,9 +11,20 @@ import (
 //EncodeHandler (storage storages.IStorage) http.Handler {
 func EncodeHandler(storage storages.IStorage) http.Handler {
 	handleFunc := func(w http.ResponseWriter, r *http.Request) {
+
+		// reqbyte, _ := httputil.DumpRequest(r, true)
+		// log.Println(string(reqbyte))
+
+		// r.ParseForm() //анализ аргументов,
+		// fmt.Println("ENC REQUEST RORM:", r.Form)
+
 		if url := r.PostFormValue("url"); url != "" {
-			log.Println("URL IS: %d " + url)
-			w.Write([]byte(storage.Save(url)))
+
+			shortResult := storage.Save(url)
+
+			response := "http://localhost/" + shortResult
+
+			w.Write([]byte(response))
 		} else {
 			w.Write([]byte("TETREWTWS!!"))
 		}
@@ -42,17 +53,42 @@ func DecodeHandler(storage storages.IStorage) http.Handler {
 //RedirectHandler (storage storages.IStorage) http.Handler {
 func RedirectHandler(storage storages.IStorage) http.Handler {
 	handleFunc := func(w http.ResponseWriter, r *http.Request) {
+
+		// reqbyte, _ := httputil.DumpRequest(r, true)
+		// log.Println("!Request Byte:\n\n<--", string(reqbyte), "<---")
+
+		// r.ParseForm() //анализ аргументов,
+		// fmt.Println("URL FORM:", r.Form)
+
 		code := r.URL.Path[len("/"):]
+
+		log.Println("Short code requested, req.URL.Path:", code)
+
+		if code == "" {
+			http.Redirect(w, r, "/notfound", 303)
+		}
 
 		url, err := storage.Load(code)
 		if err != nil {
-			w.WriteHeader(http.StatusNotFound)
-			w.Write([]byte("URL Not Found. Error: " + err.Error() + "\n"))
-			return
-		}
+			// do nothing:
 
-		http.Redirect(w, r, string(url), 301)
+			// w.WriteHeader(http.StatusNotFound)
+			// w.Write([]byte("URL Not Found. Error: " + err.Error() + "\n"))
+			// return
+		}
+		log.Println("Long url from database:", url)
+
+		http.Redirect(w, r, "http://"+string(url), http.StatusSeeOther)
 	}
 
+	return http.HandlerFunc(handleFunc)
+}
+
+//RedirectHandler (storage storages.IStorage) http.Handler {
+func NullHandler(storage storages.IStorage) http.Handler {
+	handleFunc := func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
 	return http.HandlerFunc(handleFunc)
 }

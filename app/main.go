@@ -1,37 +1,49 @@
 package main
 
 import (
+	"fmt"
 	"log"
+	"net/http"
+	"os"
 
-	"github.com/mxgn/url-shrtnr/app/storages/postgres"
+	"github.com/mxgn/url-shrtnr/app/handlers"
+	"github.com/mxgn/url-shrtnr/app/storages"
+	"github.com/spf13/viper"
 )
 
 func main() {
-
 	log.SetFlags(log.Lshortfile &^ (log.Ldate | log.Ltime))
 
-	storage := &postgres.Pgdb{}
-	storage.Init(postgres.Config{
-		Host:   "pgdb",
-		Port:   "5432",
-		User:   "postgres",
-		Pass:   "",
-		Dbname: "postgres"})
+	// if os.Getenv("ENVIRONMENT") == "DEV" {
+	// 	viper.SetConfigName("config")
+	// 	viper.SetConfigType("toml")
+	// 	viper.AddConfigPath(filepath.Dir("/config"))
+	// 	viper.ReadInConfig()
+	// } else {
+	// 	viper.AutomaticEnv()
+	// }
 
-	// storage.Db.Exec(`DROP TABLE URL_TBL`)
+	fmt.Println(viper.AllSettings())
+
+	storage := &storages.Pgdb{}
+	storage.Init()
+
 	// storage.CreateSchema()
 	// storage.Save("test112")
 
-	// http.Handle("/", handlers.RedirectHandler(env))
-	// http.Handle("/enc/", handlers.EncodeHandler(env))
-	// http.Handle("/dec/", handlers.DecodeHandler(env))
+	fs := http.FileServer(http.Dir("/var/www"))
+	http.Handle("/add/", http.StripPrefix("/add/", fs))
 
-	// port := os.Getenv("PORT")
-	// if port == "" {
-	// 	port = "8080"
-	// }
-	// if err := http.ListenAndServe(":"+port, nil); err != nil {
-	// 	log.Fatal(err)
-	// }
+	http.Handle("/", handlers.RedirectHandler(storage))
+	http.Handle("/enc/", handlers.EncodeHandler(storage))
+	http.Handle("/favicon.ico", handlers.NullHandler(storage))
+
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "80"
+	}
+	if err := http.ListenAndServe(":"+port, nil); err != nil {
+		log.Fatal(err)
+	}
 
 }

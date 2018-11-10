@@ -14,7 +14,8 @@ RUN adduser -D -g '' gmaxusr
 ENV GOPATH /go
 ENV PATH $GOPATH/bin:/usr/local/go/bin:$PATH
 
-RUN go get github.com/mxgn/url-shrtnr
+WORKDIR $GOPATH/src/github.com/mxgn
+RUN git clone https://github.com/mxgn/url-shrtnr
 
 WORKDIR $GOPATH/src/github.com/mxgn/url-shrtnr/app
 #get dependancies
@@ -35,6 +36,8 @@ COPY --from=builder /etc/passwd /etc/passwd
 COPY --from=builder /go/bin/url-shrntr-test /go/bin/url-shrntr-test
 
 USER gmaxusr
+
+ENV PORT 8080
 
 ENTRYPOINT ["/go/bin/url-shrntr-test"]
 

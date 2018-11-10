@@ -3,7 +3,7 @@ version: "3"
 services:
   app:
     container_name: "app"
-    build: "./docker/go-dev"
+    build: "./docker/go-prod"
     ports:
       - 80:80
       - 5002:5002

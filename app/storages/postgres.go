@@ -89,12 +89,13 @@ func (r *Pgdb) GetNextId() int64 {
 
 func (r *Pgdb) checkUrl(longUrl string) string {
 
+	var short string
 	stmt := `
 			SELECT short_url FROM url_tbl WHERE long_url = $1
 			`
-	var short string
+
 	if err := r.Db.QueryRow(stmt, longUrl).Scan(&short); err != nil {
-		// log.Println(err)
+		log.Println(err)
 	}
 
 	if short != "" {
@@ -123,13 +124,13 @@ func (r *Pgdb) Save(longUrl string) string {
 	}
 	log.Println("Insert result:", res)
 
-	return "ok"
+	return short
 }
 
 func (r *Pgdb) Load(shortUrl string) (string, error) {
 
 	long := ""
-	stmt := `SELECT long_url FROM url_tbl WHERE short_url = $1;`
+	stmt := `SELECT long_url FROM url_tbl WHERE short_url = $1`
 
 	if err := r.Db.QueryRow(stmt, shortUrl).Scan(&long); err != nil {
 		fmt.Println("!!!Short:", shortUrl, "\n\nERROR:", err)

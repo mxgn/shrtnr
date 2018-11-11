@@ -1,22 +1,17 @@
 version: "3"
 
 services:
-  app-dev:
-    container_name: "app-dev"
-    build: "./docker/go-dev"
-    # image: mxgn/url-shrtnr
+  app:
+    container_name: "app"
+    image: mxgn/url-shrtnr
     ports:
       - 80:8080
       - 5002:5002
-    volumes:
-      - .:${GO_PROJECT_DIR}
-      - $GOPATH/src:/go/src
-      - ./www:/var/www
     links:
       - pgdb
     environment:
+      ENVIRONMENT: PROD
       PORT: 8080
-      GO_WORK_DIR: ${GO_PROJECT_DIR}/app
       PG_HOST: pgdb
       PG_PORT: 5432
       PG_USER: postgres

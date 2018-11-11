@@ -11,7 +11,12 @@ import (
 	"github.com/mxgn/url-shrtnr/app/algorithm"
 )
 
-type Pgdb struct {
+var Pgdb DbIface
+
+//db - local package var
+var db *sql.DB
+
+type DbIface struct {
 	Db *sql.DB
 }
 
@@ -23,7 +28,7 @@ type Config struct {
 	Dbname string
 }
 
-func (r *Pgdb) Init() {
+func (r *DbIface) Init() {
 
 	cfg := &Config{}
 
@@ -55,14 +60,13 @@ func (r *Pgdb) Init() {
 		log.Fatalln(err)
 	}
 
-	r.Db = db
-
-	if err = r.Db.Ping(); err != nil {
+	if err = db.Ping(); err != nil {
 		log.Fatalln(err)
 	}
+	Pgdb.Db = db
 }
 
-func (r *Pgdb) CreateSchema() {
+func (r *DbIface) CreateSchema() {
 	// r.Db.Exec(`DROP TABLE URL_TBL`)
 	stmt := `
 			CREATE TABLE IF NOT EXISTS URL_TBL (
@@ -70,12 +74,12 @@ func (r *Pgdb) CreateSchema() {
 				short_url  text   UNIQUE NOT NULL,
 				long_url   text   UNIQUE NOT NULL
 			)`
-	if _, err := r.Db.Exec(stmt); err != nil {
+	if _, err := Pgdb.Db.Exec(stmt); err != nil {
 		log.Fatalln("URL table create error:", err)
 	}
 }
 
-func (r *Pgdb) GetNextId() int64 {
+func (r *DbIface) GetNextId() int64 {
 	stmt := `
 			select nextval(pg_get_serial_sequence('url_tbl', 'id')) as nextId
 			`
@@ -87,7 +91,7 @@ func (r *Pgdb) GetNextId() int64 {
 	return id
 }
 
-func (r *Pgdb) checkUrl(longUrl string) string {
+func (r *DbIface) checkUrl(longUrl string) string {
 
 	var short string
 	stmt := `
@@ -105,7 +109,7 @@ func (r *Pgdb) checkUrl(longUrl string) string {
 	return ""
 }
 
-func (r *Pgdb) Save(longUrl string) string {
+func (r *DbIface) Save(longUrl string) string {
 
 	stmt := `
 			INSERT INTO URL_TBL (id, short_url, long_url) VALUES ($1, $2, $3)
@@ -127,7 +131,7 @@ func (r *Pgdb) Save(longUrl string) string {
 	return short
 }
 
-func (r *Pgdb) Load(shortUrl string) (string, error) {
+func (r *DbIface) Load(shortUrl string) (string, error) {
 
 	long := ""
 	stmt := `SELECT long_url FROM url_tbl WHERE short_url = $1`

@@ -1,32 +1,38 @@
 package main
 
 import (
+	"database/sql"
 	"log"
 	"net/http"
 	"os"
 
+	"github.com/gorilla/mux"
 	"github.com/mxgn/url-shrtnr/app/handlers"
 	"github.com/mxgn/url-shrtnr/app/storages"
 )
 
+var db *sql.DB
+
 func main() {
 	log.SetFlags(log.Lshortfile &^ (log.Ldate | log.Ltime))
 
-	storage := &storages.Pgdb{}
-	storage.Init()
-	storage.CreateSchema()
+	db := &storages.DbIface{}
+	db.Init()
+	db.CreateSchema()
 
-	fs := http.FileServer(http.Dir("/var/www"))
-	http.Handle("/add/", http.StripPrefix("/add/", fs))
+	r := mux.NewRouter()
 
-	http.Handle("/", handlers.RedirectHandler(storage))
-	http.Handle("/add", handlers.EncodeHandler(storage))
-	http.Handle("/favicon.ico", handlers.Handler404(storage))
+	r.Handle("/add/", http.StripPrefix("/add/", http.FileServer(http.Dir("/var/www"))))
+	r.HandleFunc("/", handlers.UrlRedirect)
+	r.HandleFunc("/add", handlers.UrlAdd)
+	r.HandleFunc("/{^[A-Za-z0-9]+$}", handlers.UrlRedirect)
 
+	http.Handle("/", r)
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
 	}
+
 	if err := http.ListenAndServe(":"+port, nil); err != nil {
 		log.Fatal(err)
 	}

@@ -10,12 +10,12 @@ services:
     volumes:
       - .:${GO_PROJECT_DIR}
       - $GOPATH/src:/go/src
-      - ./www:/var/www
+      # - ./www:/var/www
     links:
       - pgdb
     environment:
       ENVIRONMENT: PROD
-      PORT: 80
+      PORT: 8080
       # REDIS_URL: redis:6379
       GO_WORK_DIR: ${GO_PROJECT_DIR}/app
       PG_HOST: pgdb

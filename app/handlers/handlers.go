@@ -47,6 +47,7 @@ func RedirectHandler(storage storages.IStorage) http.Handler {
 
 		if code == "" {
 			http.Redirect(w, r, "/add/", 303)
+			return
 		}
 
 		url, err := storage.Load(code)

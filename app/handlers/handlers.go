@@ -9,6 +9,8 @@ import (
 
 func UrlRedirect(w http.ResponseWriter, r *http.Request) {
 
+	log.Printf("Got new request: req.Host=%s, req.URL=%s\n", r.Host, r.URL)
+
 	code := r.URL.Path[len("/"):]
 	log.Println("r.URL.Path[len(\"/\"):]   :", code)
 

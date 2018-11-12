@@ -14,6 +14,7 @@ import (
 var db *sql.DB
 
 func main() {
+
 	log.SetFlags(log.Lshortfile &^ (log.Ldate | log.Ltime))
 
 	db := &storages.DbIface{}
@@ -24,8 +25,8 @@ func main() {
 
 	r.Handle("/add/", http.StripPrefix("/add/", http.FileServer(http.Dir("/var/www"))))
 	r.HandleFunc("/", handlers.UrlRedirect)
-	r.HandleFunc("/add", handlers.UrlAdd)
-	r.HandleFunc("/{^[A-Za-z0-9]+$}", handlers.UrlRedirect)
+	r.HandleFunc("/add", handlers.UrlAdd).Methods(http.MethodPost)
+	r.HandleFunc("/{^[A-Za-z0-9]+$}", handlers.UrlRedirect).Methods(http.MethodGet)
 
 	http.Handle("/", r)
 	port := os.Getenv("PORT")

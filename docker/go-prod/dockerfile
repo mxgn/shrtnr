@@ -34,13 +34,13 @@ COPY --from=builder /etc/passwd /etc/passwd
 COPY --from=builder /go/src/github.com/mxgn/url-shrtnr/www /var/www
 
 # Copy our static executable
-COPY --from=builder /go/bin/url-shrntr-test /go/bin/url-shrntr-test
+COPY --from=builder /go/bin/url-shrntr-test /go/bin
 
 USER gmaxusr
 
 ENV PORT 8080
 
-ENTRYPOINT ["/go/bin/url-shrntr-test"]
+ENTRYPOINT ["/go/bin"]
 
 # Document that the service listens on port 8080
 EXPOSE 8080

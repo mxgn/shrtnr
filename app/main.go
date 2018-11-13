@@ -23,8 +23,8 @@ func main() {
 
 	r := mux.NewRouter()
 
-	r.Handle("/add/", http.StripPrefix("/add/", http.FileServer(http.Dir("/var/www"))))
-	r.HandleFunc("/", handlers.UrlRedirect)
+	r.Handle("/add/", http.StripPrefix("/add/", http.FileServer(http.Dir("/var/www")))).Methods(http.MethodGet)
+	r.HandleFunc("/", handlers.UrlRedirect).Methods(http.MethodGet)
 	r.HandleFunc("/add", handlers.UrlAdd).Methods(http.MethodPost)
 	r.HandleFunc("/{^[A-Za-z0-9]+$}", handlers.UrlRedirect).Methods(http.MethodGet)
 

@@ -16,6 +16,7 @@ services:
       - pgdb
     environment:
       PORT: 8080
+      STATIC_DIR: /var/www
       GO_WORK_DIR: ${GO_PROJECT_DIR}/app
       PG_HOST: pgdb
       PG_PORT: 5432

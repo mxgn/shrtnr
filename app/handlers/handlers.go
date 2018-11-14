@@ -15,7 +15,7 @@ func UrlRedirect(w http.ResponseWriter, r *http.Request) {
 	log.Println("r.URL.Path[len(\"/\"):]   :", code)
 
 	if code == "" {
-		http.Redirect(w, r, "/add/", 303)
+		http.Redirect(w, r, "/static/index.html", 303)
 		return
 	}
 
@@ -30,6 +30,9 @@ func UrlRedirect(w http.ResponseWriter, r *http.Request) {
 func UrlAdd(w http.ResponseWriter, r *http.Request) {
 
 	test := r.URL.Query().Get("url")
+	if appConfig.debug {
+
+	}
 	log.Println("r.URL.QueryGet(\"url\"):", test)
 
 	var response string

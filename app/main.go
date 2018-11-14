@@ -15,18 +15,34 @@ var db *sql.DB
 
 func main() {
 
-	log.SetFlags(log.Lshortfile &^ (log.Ldate | log.Ltime))
+	log.SetFlags(log.LstdFlags &^ (log.Ldate | log.Ltime))
+	// log.SetFlags(log.Lshortfile)
 
 	db := &storages.DbIface{}
 	db.Init()
 	db.CreateSchema()
 
+	cfg := Init(true)
+
+	log.Println(`cfg.debug=`, cfg.debug)
+
+	handlers.AppConfig := cfg
+
 	r := mux.NewRouter()
 
-	r.Handle("/add/", http.StripPrefix("/add/", http.FileServer(http.Dir("/var/www")))).Methods(http.MethodGet)
-	r.HandleFunc("/", handlers.UrlRedirect).Methods(http.MethodGet)
-	r.HandleFunc("/add", handlers.UrlAdd).Methods(http.MethodPost)
-	r.HandleFunc("/{^[A-Za-z0-9]+$}", handlers.UrlRedirect).Methods(http.MethodGet)
+	fs := http.FileServer(http.Dir(cfg.staticDir))
+	r.PathPrefix("/static/").
+		Handler(http.StripPrefix("/static/", fs)).
+		Methods("GET")
+
+	r.HandleFunc("/", handlers.UrlRedirect).
+		Methods(http.MethodGet)
+
+	r.HandleFunc("/api/add", handlers.UrlAdd).
+		Methods(http.MethodPost)
+
+	r.HandleFunc("/{^[A-Za-z0-9]+$}", handlers.UrlRedirect).
+		Methods("GET")
 
 	http.Handle("/", r)
 	port := os.Getenv("PORT")

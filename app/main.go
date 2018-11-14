@@ -8,6 +8,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/mxgn/url-shrtnr/app/handlers"
+	"github.com/mxgn/url-shrtnr/app/server"
 	"github.com/mxgn/url-shrtnr/app/storages"
 )
 
@@ -22,15 +23,15 @@ func main() {
 	db.Init()
 	db.CreateSchema()
 
-	cfg := Init(true)
+	cfg := &server.AppConfig{Debug: true}
 
-	log.Println(`cfg.debug=`, cfg.debug)
+	server.Init(cfg)
 
-	handlers.AppConfig := cfg
+	log.Println(`cfg.debug=`, cfg.Debug)
 
 	r := mux.NewRouter()
 
-	fs := http.FileServer(http.Dir(cfg.staticDir))
+	fs := http.FileServer(http.Dir(cfg.StaticDir))
 	r.PathPrefix("/static/").
 		Handler(http.StripPrefix("/static/", fs)).
 		Methods("GET")

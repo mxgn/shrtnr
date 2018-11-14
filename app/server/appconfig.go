@@ -1,4 +1,4 @@
-package main
+package server
 
 import (
 	"errors"
@@ -9,16 +9,16 @@ import (
 
 type AppConfig struct {
 	M         map[string]string
-	staticDir string
-	debug     bool
+	StaticDir string
+	Debug     bool
 }
+
+var Cfg *AppConfig
 
 type Config interface {
 	Get(key string) (string, error)
 	Set(key, val string) error
 }
-
-var AppConfig AppConfig
 
 func (c AppConfig) Get(key string) (string, error) {
 	val, ok := c.M[key]
@@ -33,17 +33,17 @@ func (c AppConfig) Set(key, val string) {
 	c.M[key] = val
 
 	// debug, _ := c.debug
-	if c.debug {
+	if c.Debug {
 		log.Printf(`Set: key=%v, value=%v`, key, val)
 	}
 
 }
 
-func Init(debug bool) (cfg AppConfig) {
+func Init(cfg *AppConfig) {
 
-	if debug {
-		cfg.debug = true
-		log.Println(`Init(): Staft app with debug: cfg.debug =`, debug)
+	if cfg.Debug {
+		cfg.Debug = true
+		log.Println(`Init(): Staft app with debug: cfg.debug =`, cfg.Debug)
 	}
 
 	cfg.M = make(map[string]string)
@@ -53,15 +53,12 @@ func Init(debug bool) (cfg AppConfig) {
 		staticDir = getSelfPath(cfg) + "\\www"
 	}
 	cfg.Set("staticDir", staticDir)
-	cfg.staticDir = staticDir
-
-	return cfg
-
+	cfg.StaticDir = staticDir
 }
 
-func getSelfPath(cfg AppConfig) string {
+func getSelfPath(cfg *AppConfig) string {
 	dir, err := filepath.Abs(os.Getenv("GO_PROJECT_DIR"))
-	if cfg.debug {
+	if cfg.Debug {
 		log.Println(`getSelfPath(): os.Getenv("GO_PROJECT_DIR"):`, dir)
 	}
 	if err != nil {

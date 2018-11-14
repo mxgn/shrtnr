@@ -30,9 +30,6 @@ func UrlRedirect(w http.ResponseWriter, r *http.Request) {
 func UrlAdd(w http.ResponseWriter, r *http.Request) {
 
 	test := r.URL.Query().Get("url")
-	if appConfig.debug {
-
-	}
 	log.Println("r.URL.QueryGet(\"url\"):", test)
 
 	var response string

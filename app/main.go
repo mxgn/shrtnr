@@ -19,8 +19,7 @@ func main() {
 	app.Init()
 
 	storages.Pgdb = storages.Init(app)
-
-	storages.Pgdb.CreateSchema()
+	// storages.Pgdb.CreateSchema()
 
 	r := mux.NewRouter()
 
@@ -38,6 +37,7 @@ func main() {
 	r.HandleFunc("/{^[A-Za-z0-9]+$}", handlers.UrlRedirect).
 		Methods("GET")
 
+	http.Handle("/", r)
 	if err := http.ListenAndServe(":"+app.Port, nil); err != nil {
 		log.Fatal(err)
 	}

@@ -33,17 +33,32 @@ func Init(app *models.AppConfig) *DbIface {
 	if port == "" {
 		port = "5432"
 	}
+	if app.Debug {
+		log.Println(`APP_PG_PORT: `, port)
+	}
+
 	user := os.Getenv("APP_PG_USER")
 	if user == "" {
 		user = "postgres"
 	}
+	if app.Debug {
+		log.Println(`APP_PG_USER: `, user)
+	}
+
 	pass := os.Getenv("APP_PG_PASS")
 	if pass == "" {
 		pass = ""
 	}
+	if app.Debug {
+		log.Println(`APP_PG_PASS: `, pass)
+	}
+
 	dbname := os.Getenv("APP_PG_DBNAME")
 	if dbname == "" {
 		dbname = ""
+	}
+	if app.Debug {
+		log.Println(`APP_PG_DBNAME: `, dbname)
 	}
 
 	db, err := sql.Open("postgres", fmt.Sprintf(

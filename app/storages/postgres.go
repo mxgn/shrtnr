@@ -21,27 +21,27 @@ type DbIface struct {
 
 func Init(app *models.AppConfig) *DbIface {
 
-	host := os.Getenv("PG_HOST")
+	host := os.Getenv("APP_PG_HOST")
 	if host == "" {
 		host = "localhost"
 	}
 	if app.Debug {
-		log.Println(`PG_HOST: `, host)
+		log.Println(`APP_PG_HOST: `, host)
 	}
 
-	port := os.Getenv("PG_PORT")
+	port := os.Getenv("APP_PG_PORT")
 	if port == "" {
 		port = "5432"
 	}
-	user := os.Getenv("PG_USER")
+	user := os.Getenv("APP_PG_USER")
 	if user == "" {
 		user = "postgres"
 	}
-	pass := os.Getenv("PG_PASS")
+	pass := os.Getenv("APP_PG_PASS")
 	if pass == "" {
 		pass = ""
 	}
-	dbname := os.Getenv("PG_DBNAME")
+	dbname := os.Getenv("APP_PG_DBNAME")
 	if dbname == "" {
 		dbname = ""
 	}

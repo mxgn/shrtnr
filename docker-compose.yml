@@ -7,7 +7,6 @@ services:
     # image: mxgn/url-shrtnr
     ports:
       - 80:8080
-      - 5002:5002
     volumes:
       - .:${GO_PROJECT_DIR}
       - $GOPATH/src:/go/src
@@ -16,8 +15,8 @@ services:
       - pgdb
     environment:
       GO_WORK_DIR: ${GO_PROJECT_DIR}/app
+
       APP_PORT: 8080
-      APP_EXEC_DIR: ${GO_PROJECT_DIR}/app
       APP_STATIC_DIR: /var/www/
       APP_PG_HOST: pgdb
       APP_PG_PORT: 5432

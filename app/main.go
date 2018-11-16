@@ -13,7 +13,7 @@ import (
 func main() {
 
 	log.SetFlags(log.LstdFlags &^ (log.Ldate | log.Ltime))
-	log.SetFlags(log.Lshortfile)
+	// log.SetFlags(log.Lshortfile)
 
 	app := &models.AppConfig{Debug: true}
 	app.Init()

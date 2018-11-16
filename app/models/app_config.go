@@ -24,7 +24,7 @@ func (app *AppConfig) Init() {
 
 	app.Port = os.Getenv("APP_PORT")
 	if app.Port == "" {
-		app.Port = "8080"
+		app.Port = "80"
 	}
 	if app.Debug {
 		log.Println(`APP_PORT:`, app.Port)
@@ -32,7 +32,13 @@ func (app *AppConfig) Init() {
 }
 
 func getPath(app *AppConfig) string {
-	dir, err := filepath.Abs(os.Getenv("APP_EXEC_DIR"))
+
+	edir := os.Getenv("APP_EXEC_DIR")
+	if app.Debug {
+		log.Println(`APP_EXEC_DIR:`, edir)
+	}
+	dir, err := filepath.Abs(".")
+
 	if app.Debug {
 		log.Println(`APP_EXEC_DIR:`, dir)
 	}

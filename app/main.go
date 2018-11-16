@@ -1,37 +1,30 @@
 package main
 
 import (
-	"database/sql"
 	"log"
 	"net/http"
-	"os"
 
 	"github.com/gorilla/mux"
 	"github.com/mxgn/url-shrtnr/app/handlers"
-	"github.com/mxgn/url-shrtnr/app/server"
+	"github.com/mxgn/url-shrtnr/app/models"
 	"github.com/mxgn/url-shrtnr/app/storages"
 )
-
-var db *sql.DB
 
 func main() {
 
 	log.SetFlags(log.LstdFlags &^ (log.Ldate | log.Ltime))
-	// log.SetFlags(log.Lshortfile)
+	log.SetFlags(log.Lshortfile)
 
-	db := &storages.DbIface{}
-	db.Init()
-	db.CreateSchema()
+	app := &models.AppConfig{Debug: true}
+	app.Init()
 
-	cfg := &server.AppConfig{Debug: true}
+	storages.Pgdb = storages.Init(app)
 
-	server.Init(cfg)
-
-	log.Println(`cfg.debug=`, cfg.Debug)
+	storages.Pgdb.CreateSchema()
 
 	r := mux.NewRouter()
 
-	fs := http.FileServer(http.Dir(cfg.StaticDir))
+	fs := http.FileServer(http.Dir(app.StaticDir))
 	r.PathPrefix("/static/").
 		Handler(http.StripPrefix("/static/", fs)).
 		Methods("GET")
@@ -45,13 +38,7 @@ func main() {
 	r.HandleFunc("/{^[A-Za-z0-9]+$}", handlers.UrlRedirect).
 		Methods("GET")
 
-	http.Handle("/", r)
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080"
-	}
-
-	if err := http.ListenAndServe(":"+port, nil); err != nil {
+	if err := http.ListenAndServe(":"+app.Port, nil); err != nil {
 		log.Fatal(err)
 	}
 

@@ -9,53 +9,46 @@ import (
 
 	_ "github.com/lib/pq"
 	"github.com/mxgn/url-shrtnr/app/algorithm"
+	"github.com/mxgn/url-shrtnr/app/models"
 )
 
-var Pgdb DbIface
-
-//db - local package var
-var db *sql.DB
+var Pgdb *DbIface
 
 type DbIface struct {
-	Db *sql.DB
+	appCtx *models.AppConfig
+	Db     *sql.DB
 }
 
-type Config struct {
-	Host   string
-	Port   string
-	User   string
-	Pass   string
-	Dbname string
-}
+func Init(app *models.AppConfig) *DbIface {
 
-func (r *DbIface) Init() {
+	host := os.Getenv("PG_HOST")
+	if host == "" {
+		host = "localhost"
+	}
+	if app.Debug {
+		log.Println(`PG_HOST: `, host)
+	}
 
-	cfg := &Config{}
-
-	cfg.Host = os.Getenv("PG_HOST")
-	if cfg.Host == "" {
-		cfg.Host = "localhost"
+	port := os.Getenv("PG_PORT")
+	if port == "" {
+		port = "5432"
 	}
-	cfg.Port = os.Getenv("PG_PORT")
-	if cfg.Port == "" {
-		cfg.Port = "5432"
+	user := os.Getenv("PG_USER")
+	if user == "" {
+		user = "postgres"
 	}
-	cfg.User = os.Getenv("PG_USER")
-	if cfg.User == "" {
-		cfg.User = "postgres"
+	pass := os.Getenv("PG_PASS")
+	if pass == "" {
+		pass = ""
 	}
-	cfg.Pass = os.Getenv("PG_PASS")
-	if cfg.Pass == "" {
-		cfg.Pass = ""
-	}
-	cfg.Dbname = os.Getenv("PG_DBNAME")
-	if cfg.Dbname == "" {
-		cfg.Dbname = ""
+	dbname := os.Getenv("PG_DBNAME")
+	if dbname == "" {
+		dbname = ""
 	}
 
 	db, err := sql.Open("postgres", fmt.Sprintf(
 		"user=%s password=%s dbname=%s host=%s port=%s sslmode=disable",
-		cfg.User, cfg.Pass, cfg.Dbname, cfg.Host, cfg.Port))
+		user, pass, dbname, host, port))
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -63,7 +56,7 @@ func (r *DbIface) Init() {
 	if err = db.Ping(); err != nil {
 		log.Fatalln(err)
 	}
-	Pgdb.Db = db
+	return &DbIface{Db: db}
 }
 
 func (r *DbIface) CreateSchema() {

@@ -9,23 +9,22 @@ import (
 
 	_ "github.com/lib/pq"
 	"github.com/mxgn/url-shrtnr/app/algorithm"
-	"github.com/mxgn/url-shrtnr/app/models"
 )
 
-var Pgdb *DbIface
-
-type DbIface struct {
-	appCtx *models.AppConfig
-	Db     *sql.DB
+type IStorageImpl struct {
+	db *sql.DB
 }
 
-func Init(app *models.AppConfig) *DbIface {
+var DB *sql.DB
+var err error
+
+func Init(debug bool) *IStorageImpl {
 
 	host := os.Getenv("APP_PG_HOST")
 	if host == "" {
 		host = "localhost"
 	}
-	if app.Debug {
+	if debug {
 		log.Println(`APP_PG_HOST: `, host)
 	}
 
@@ -33,7 +32,7 @@ func Init(app *models.AppConfig) *DbIface {
 	if port == "" {
 		port = "5432"
 	}
-	if app.Debug {
+	if debug {
 		log.Println(`APP_PG_PORT: `, port)
 	}
 
@@ -41,7 +40,7 @@ func Init(app *models.AppConfig) *DbIface {
 	if user == "" {
 		user = "postgres"
 	}
-	if app.Debug {
+	if debug {
 		log.Println(`APP_PG_USER: `, user)
 	}
 
@@ -49,7 +48,7 @@ func Init(app *models.AppConfig) *DbIface {
 	if pass == "" {
 		pass = ""
 	}
-	if app.Debug {
+	if debug {
 		log.Println(`APP_PG_PASS: `, pass)
 	}
 
@@ -57,24 +56,24 @@ func Init(app *models.AppConfig) *DbIface {
 	if dbname == "" {
 		dbname = ""
 	}
-	if app.Debug {
+	if debug {
 		log.Println(`APP_PG_DBNAME: `, dbname)
 	}
 
-	db, err := sql.Open("postgres", fmt.Sprintf(
+	DB, err = sql.Open("postgres", fmt.Sprintf(
 		"user=%s password=%s dbname=%s host=%s port=%s sslmode=disable",
 		user, pass, dbname, host, port))
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	if err = db.Ping(); err != nil {
+	if err = DB.Ping(); err != nil {
 		log.Fatalln(err)
 	}
-	return &DbIface{Db: db}
+	return &IStorageImpl{DB}
 }
 
-func (r *DbIface) CreateSchema() {
+func сreateSchema() {
 	// r.Db.Exec(`DROP TABLE URL_TBL`)
 	stmt := `
 			CREATE TABLE IF NOT EXISTS URL_TBL (
@@ -82,31 +81,31 @@ func (r *DbIface) CreateSchema() {
 				short_url  text   UNIQUE NOT NULL,
 				long_url   text   UNIQUE NOT NULL
 			)`
-	if _, err := Pgdb.Db.Exec(stmt); err != nil {
+	if _, err := DB.Exec(stmt); err != nil {
 		log.Fatalln("URL table create error:", err)
 	}
 }
 
-func (r *DbIface) GetNextId() int64 {
+func getNextId() int64 {
 	stmt := `
 			select nextval(pg_get_serial_sequence('url_tbl', 'id')) as nextId
 			`
 	var id int64
-	if err := r.Db.QueryRow(stmt).Scan(&id); err != nil {
+	if err := DB.QueryRow(stmt).Scan(&id); err != nil {
 		log.Println("Error getting next Id: ", err)
 	}
 	log.Println("Got next id:", id)
 	return id
 }
 
-func (r *DbIface) checkUrl(longUrl string) string {
+func checkUrl(longUrl string) string {
 
 	var short string
 	stmt := `
 			SELECT short_url FROM url_tbl WHERE long_url = $1
 			`
 
-	if err := r.Db.QueryRow(stmt, longUrl).Scan(&short); err != nil {
+	if err := DB.QueryRow(stmt, longUrl).Scan(&short); err != nil {
 		log.Println(err)
 	}
 
@@ -117,34 +116,34 @@ func (r *DbIface) checkUrl(longUrl string) string {
 	return ""
 }
 
-func (r *DbIface) Save(longUrl string) string {
+func (s IStorageImpl) AddLongUrl(longUrl string) (string, error) {
 
 	stmt := `
 			INSERT INTO URL_TBL (id, short_url, long_url) VALUES ($1, $2, $3)
 			`
 
-	if short := r.checkUrl(longUrl); short != "" {
-		return short
+	if short := checkUrl(longUrl); short != "" {
+		return short, nil
 	}
 
-	id := r.GetNextId()
+	id := getNextId()
 	short := algorithm.Encode(id)
 
-	res, err := r.Db.Exec(stmt, id, short, longUrl)
+	res, err := DB.Exec(stmt, id, short, longUrl)
 	if err != nil {
 		log.Println("Insert error:", err)
 	}
 	log.Println("Insert result:", res)
 
-	return short
+	return short, nil
 }
 
-func (r *DbIface) Load(shortUrl string) (string, error) {
+func (s *IStorageImpl) GetLongUrl(shortUrl string) (string, error) {
 
 	long := ""
 	stmt := `SELECT long_url FROM url_tbl WHERE short_url = $1`
 
-	if err := r.Db.QueryRow(stmt, shortUrl).Scan(&long); err != nil {
+	if err := DB.QueryRow(stmt, shortUrl).Scan(&long); err != nil {
 		fmt.Println("!!!Short:", shortUrl, "\n\nERROR:", err)
 	}
 

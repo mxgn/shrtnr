@@ -1,15 +1,18 @@
-package models
+package main
 
 import (
 	"log"
 	"os"
 	"path/filepath"
+
+	"github.com/mxgn/url-shrtnr/app/storages"
 )
 
 type AppConfig struct {
-	StaticDir string
 	Debug     bool
+	StaticDir string
 	Port      string
+	Storage   storages.IStorage
 }
 
 func (app *AppConfig) Init() {
@@ -37,7 +40,7 @@ func getPath(app *AppConfig) string {
 	if app.Debug {
 		log.Println(`APP_EXEC_DIR:`, edir)
 	}
-	dir, err := filepath.Abs(".")
+	dir, err := filepath.Abs(".") // check how it works? how get all runtime vars?
 
 	if app.Debug {
 		log.Println(`APP_EXEC_DIR:`, dir)

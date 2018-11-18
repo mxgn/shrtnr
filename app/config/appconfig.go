@@ -8,7 +8,7 @@ import (
 	"github.com/mxgn/url-shrtnr/app/storage"
 )
 
-type AppCtx struct {
+type AppContext struct {
 	Debug     bool
 	StaticDir string
 	Port      string
@@ -24,7 +24,7 @@ type DBcfg struct {
 	Name string
 }
 
-func (app *AppCtx) ReadConfig() {
+func (app *AppContext) ReadConfig() {
 
 	app.StaticDir = os.Getenv("APP_STATIC_DIR")
 	if app.StaticDir == "" {
@@ -82,7 +82,7 @@ func (app *AppCtx) ReadConfig() {
 	}
 }
 
-func getPath(app *AppCtx) string {
+func getPath(app *AppContext) string {
 
 	dir, err := filepath.Abs(".") // check how it works? how get all runtime vars?
 

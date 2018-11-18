@@ -7,7 +7,7 @@ import (
 	"github.com/mxgn/url-shrtnr/app/config"
 )
 
-func UrlRedirect(c *config.AppCtx) func(http.ResponseWriter, *http.Request) {
+func UrlRedirect(c *config.AppContext) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		if c.Debug {
@@ -16,7 +16,7 @@ func UrlRedirect(c *config.AppCtx) func(http.ResponseWriter, *http.Request) {
 
 		code := r.URL.Path[len("/"):]
 		if code == "" {
-			http.Redirect(w, r, "/static/index.html", 303)
+			http.Redirect(w, r, "/static/index.html", http.StatusPermanentRedirect)
 			return
 		}
 
@@ -32,7 +32,7 @@ func UrlRedirect(c *config.AppCtx) func(http.ResponseWriter, *http.Request) {
 	}
 }
 
-func UrlAdd(app *config.AppCtx) func(http.ResponseWriter, *http.Request) {
+func UrlAdd(app *config.AppContext) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		test := r.URL.Query().Get("url")

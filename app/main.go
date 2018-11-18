@@ -15,7 +15,7 @@ func main() {
 	log.SetFlags(log.LstdFlags &^ (log.Ldate | log.Ltime))
 	log.SetFlags(log.Lshortfile)
 
-	app := &config.AppCtx{Debug: true}
+	app := &config.AppContext{Debug: false}
 
 	app.ReadConfig()
 

@@ -17,7 +17,7 @@ var debug bool
 
 type UrlDbIface struct{}
 
-func Init(ctx *config.AppCtx) *UrlDbIface {
+func Init(ctx *config.AppContext) *UrlDbIface {
 
 	cfg := ctx.DBcfg
 	debug = ctx.Debug

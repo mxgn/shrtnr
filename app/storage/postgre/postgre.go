@@ -1,4 +1,5 @@
 package postgre
+
 import (
 	"database/sql"
 	"errors"
@@ -13,9 +14,7 @@ import (
 var DB *sql.DB
 var err error
 
-type UrlDbIface struct {
-	// store *storage.UrlRec
-}
+type UrlDbIface struct{}
 
 func Init(debug bool) *UrlDbIface {
 
@@ -151,4 +150,3 @@ func (s *UrlDbIface) GetLongUrl(shortUrl string) (string, error) {
 	}
 	return long, nil
 }
-

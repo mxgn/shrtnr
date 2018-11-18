@@ -126,7 +126,7 @@ func (s UrlDbIface) AddLongUrl(longUrl string) (string, error) {
 	}
 
 	id := getNextId()
-	short := algorithm.Encode(id)
+	short := helpers.Encode(id)
 
 	res, err := DB.Exec(stmt, id, short, longUrl)
 	if err != nil {
@@ -143,7 +143,7 @@ func (s *UrlDbIface) GetLongUrl(shortUrl string) (string, error) {
 	stmt := `SELECT long_url FROM url_tbl WHERE short_url = $1`
 
 	if err := DB.QueryRow(stmt, shortUrl).Scan(&long); err != nil {
-		fmt.Println("DB SEARCH RESULT:",err)
+		fmt.Println("DB SEARCH RESULT:", err)
 	}
 
 	if long == "" {

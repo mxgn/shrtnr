@@ -1,5 +1,4 @@
-package algorithm
-
+package helpers
 import (
 	"fmt"
 	"strings"
@@ -36,3 +35,4 @@ func Decode(key string) (int64, error) {
 	}
 	return n, nil
 }
+

@@ -1,4 +1,5 @@
 package main
+
 import (
 	"log"
 	"net/http"
@@ -17,7 +18,7 @@ func main() {
 
 	app.ReadConfig()
 
-	app.DB = postgre.Init(false)
+	app.DB = postgre.Init(&app.DBcfg)
 
 	r := mux.NewRouter()
 
@@ -34,4 +35,3 @@ func main() {
 	}
 
 }
-

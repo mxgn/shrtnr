@@ -1,4 +1,5 @@
 package application
+
 import (
 	"log"
 	"os"
@@ -12,6 +13,15 @@ type AppCtx struct {
 	StaticDir string
 	Port      string
 	DB        storage.UrlDbIface
+	DBcfg     DBcfg
+}
+
+type DBcfg struct {
+	Host string
+	Port string
+	User string
+	Pass string
+	Name string
 }
 
 func (app *AppCtx) ReadConfig() {
@@ -31,6 +41,45 @@ func (app *AppCtx) ReadConfig() {
 	if app.Debug {
 		log.Println(`APP_PORT:`, app.Port)
 	}
+
+	//Postgre DB Settings init:
+
+	app.DBcfg.Host = os.Getenv("APP_PG_HOST")
+	if app.DBcfg.Host == "" {
+		app.DBcfg.Host = "localhost"
+	}
+	if app.Debug {
+		log.Println(`APP_PG_HOST: `, app.DBcfg.Host)
+	}
+
+	app.DBcfg.Port = os.Getenv("APP_PG_PORT")
+	if app.DBcfg.Port == "" {
+		app.DBcfg.Port = "5432"
+	}
+	if app.Debug {
+		log.Println(`APP_PG_PORT: `, app.DBcfg.Port)
+	}
+
+	app.DBcfg.User = os.Getenv("APP_PG_USER")
+	if app.DBcfg.User == "" {
+		app.DBcfg.User = "postgres"
+	}
+	if app.Debug {
+		log.Println(`APP_PG_USER: `, app.DBcfg.User)
+	}
+
+	app.DBcfg.Pass = os.Getenv("APP_PG_PASS")
+	if app.Debug {
+		log.Println(`APP_PG_PASS: `, app.DBcfg.Pass)
+	}
+
+	app.DBcfg.Name = os.Getenv("APP_PG_DBNAME")
+	if app.DBcfg.Name == "" {
+		app.DBcfg.Name = app.DBcfg.User
+	}
+	if app.Debug {
+		log.Println(`APP_PG_DBNAME: `, app.DBcfg.Name)
+	}
 }
 
 func getPath(app *AppCtx) string {
@@ -46,4 +95,3 @@ func getPath(app *AppCtx) string {
 
 	return dir
 }
-

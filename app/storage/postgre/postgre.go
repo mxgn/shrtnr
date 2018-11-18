@@ -5,9 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"os"
 
 	_ "github.com/lib/pq"
+	"github.com/mxgn/url-shrtnr/app/application"
 	"github.com/mxgn/url-shrtnr/app/helpers"
 )
 
@@ -16,51 +16,11 @@ var err error
 
 type UrlDbIface struct{}
 
-func Init(debug bool) *UrlDbIface {
-
-	host := os.Getenv("APP_PG_HOST")
-	if host == "" {
-		host = "localhost"
-	}
-	if debug {
-		log.Println(`APP_PG_HOST: `, host)
-	}
-
-	port := os.Getenv("APP_PG_PORT")
-	if port == "" {
-		port = "5432"
-	}
-	if debug {
-		log.Println(`APP_PG_PORT: `, port)
-	}
-
-	user := os.Getenv("APP_PG_USER")
-	if user == "" {
-		user = "postgres"
-	}
-	if debug {
-		log.Println(`APP_PG_USER: `, user)
-	}
-
-	pass := os.Getenv("APP_PG_PASS")
-	if pass == "" {
-		pass = ""
-	}
-	if debug {
-		log.Println(`APP_PG_PASS: `, pass)
-	}
-
-	dbname := os.Getenv("APP_PG_DBNAME")
-	if dbname == "" {
-		dbname = ""
-	}
-	if debug {
-		log.Println(`APP_PG_DBNAME: `, dbname)
-	}
+func Init(cfg *application.DBcfg) *UrlDbIface {
 
 	DB, err = sql.Open("postgres", fmt.Sprintf(
 		"user=%s password=%s dbname=%s host=%s port=%s sslmode=disable",
-		user, pass, dbname, host, port))
+		cfg.User, cfg.Pass, cfg.Name, cfg.Host, cfg.Port))
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -71,8 +31,8 @@ func Init(debug bool) *UrlDbIface {
 	return &UrlDbIface{}
 }
 
-func сreateSchema() {
-	// r.Db.Exec(`DROP TABLE URL_TBL`)
+func CreateSchema() {
+	DB.Exec(`DROP TABLE URL_TBL`)
 	stmt := `
 			CREATE TABLE IF NOT EXISTS URL_TBL (
 				id         serial UNIQUE NOT NULL,

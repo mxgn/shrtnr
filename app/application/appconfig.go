@@ -1,21 +1,20 @@
-package main
-
+package application
 import (
 	"log"
 	"os"
 	"path/filepath"
 
-	"github.com/mxgn/url-shrtnr/app/storages"
+	"github.com/mxgn/url-shrtnr/app/storage"
 )
 
-type AppConfig struct {
+type AppCtx struct {
 	Debug     bool
 	StaticDir string
 	Port      string
-	Storage   storages.IStorage
+	DB        storage.UrlDbIface
 }
 
-func (app *AppConfig) Init() {
+func (app *AppCtx) ReadConfig() {
 
 	app.StaticDir = os.Getenv("APP_STATIC_DIR")
 	if app.StaticDir == "" {
@@ -34,20 +33,17 @@ func (app *AppConfig) Init() {
 	}
 }
 
-func getPath(app *AppConfig) string {
+func getPath(app *AppCtx) string {
 
-	edir := os.Getenv("APP_EXEC_DIR")
-	if app.Debug {
-		log.Println(`APP_EXEC_DIR:`, edir)
-	}
 	dir, err := filepath.Abs(".") // check how it works? how get all runtime vars?
 
-	if app.Debug {
-		log.Println(`APP_EXEC_DIR:`, dir)
-	}
 	if err != nil {
 		log.Fatal(`APP_EXEC_DIR FAILED:`, err)
+	}
+	if app.Debug {
+		log.Println(`APP_EXEC_DIR:`, dir)
 	}
 
 	return dir
 }
+

@@ -1,12 +1,11 @@
 package main
-
 import (
 	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
-
-	"github.com/mxgn/url-shrtnr/app/storages"
+	"github.com/mxgn/url-shrtnr/app/application"
+	"github.com/mxgn/url-shrtnr/app/storage/postgre"
 )
 
 func main() {
@@ -14,20 +13,20 @@ func main() {
 	log.SetFlags(log.LstdFlags &^ (log.Ldate | log.Ltime))
 	log.SetFlags(log.Lshortfile)
 
-	app := &AppConfig{Debug: true}
+	app := &application.AppCtx{Debug: true}
 
-	app.Init()
+	app.ReadConfig()
 
-	app.Storage = storages.Init(true)
+	app.DB = postgre.Init(false)
 
 	r := mux.NewRouter()
 
 	fs := http.FileServer(http.Dir(app.StaticDir))
 	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", fs)).Methods("GET")
 
-	r.HandleFunc("/", UrlRedirect(app)).Methods("GET")
-	r.HandleFunc("/api/add", UrlAdd(app)).Methods("POST")
-	r.HandleFunc("/{^[A-Za-z0-9]+$}", UrlRedirect(app)).Methods("GET")
+	r.HandleFunc("/", application.UrlRedirect(app)).Methods("GET")
+	r.HandleFunc("/api/add", application.UrlAdd(app)).Methods("POST")
+	r.HandleFunc("/{^[A-Za-z0-9]+$}", application.UrlRedirect(app)).Methods("GET")
 
 	http.Handle("/", r)
 	if err := http.ListenAndServe(":"+app.Port, nil); err != nil {
@@ -35,3 +34,4 @@ func main() {
 	}
 
 }
+

@@ -1,15 +1,14 @@
-package main
-
+package application
 import (
 	"log"
 	"net/http"
 
-	"github.com/mxgn/url-shrtnr/app/storages"
+	"github.com/mxgn/url-shrtnr/app/storage"
 )
 
-type AppHandler struct {
-	storage *storages.IStorage
-	H       func(*storages.IStorage, http.ResponseWriter, *http.Request) (int, error)
+type AppHandlerType struct {
+	storage *storage.UrlDbIface
+	H       func(*storage.UrlDbIface, http.ResponseWriter, *http.Request) (int, error)
 }
 
 // func (ah AppHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -39,7 +38,7 @@ type AppHandler struct {
 // 	return 200, nil
 // }
 
-func UrlRedirect(c *AppConfig) func(http.ResponseWriter, *http.Request) {
+func UrlRedirect(c *AppCtx) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		if c.Debug {
@@ -52,9 +51,11 @@ func UrlRedirect(c *AppConfig) func(http.ResponseWriter, *http.Request) {
 			return
 		}
 
-		url, err := c.Storage.GetLongUrl(code)
+		url, err := c.DB.GetLongUrl(code)
 		if err != nil {
-			log.Println("")
+			log.Println("UrlRedirect, short code not found:", code)
+			http.Redirect(w, r, "URL "+code+" NotFound", http.StatusNotFound)
+			return
 		}
 
 		log.Println("Long url from database:", url)
@@ -62,7 +63,7 @@ func UrlRedirect(c *AppConfig) func(http.ResponseWriter, *http.Request) {
 	}
 }
 
-func UrlAdd(c *AppConfig) func(http.ResponseWriter, *http.Request) {
+func UrlAdd(app *AppCtx) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		test := r.URL.Query().Get("url")
@@ -72,7 +73,10 @@ func UrlAdd(c *AppConfig) func(http.ResponseWriter, *http.Request) {
 
 		if url := r.PostFormValue("url"); url != "" {
 
-			shortResult, _ := c.Storage.GetLongUrl(url)
+			shortResult, err := app.DB.GetLongUrl(url)
+			if err != nil {
+				log.Panicln(`URL ADD ERROR:`, err)
+			}
 			linkUrl := "http://localhost/" + shortResult
 			response = "<a href=\"" + linkUrl + "\">" + linkUrl + "</a>"
 
@@ -83,3 +87,4 @@ func UrlAdd(c *AppConfig) func(http.ResponseWriter, *http.Request) {
 		w.Write([]byte(response))
 	}
 }
+

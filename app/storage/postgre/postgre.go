@@ -1,5 +1,4 @@
-package storages
-
+package postgre
 import (
 	"database/sql"
 	"errors"
@@ -8,17 +7,17 @@ import (
 	"os"
 
 	_ "github.com/lib/pq"
-	"github.com/mxgn/url-shrtnr/app/algorithm"
+	"github.com/mxgn/url-shrtnr/app/helpers"
 )
-
-type IStorageImpl struct {
-	db *sql.DB
-}
 
 var DB *sql.DB
 var err error
 
-func Init(debug bool) *IStorageImpl {
+type UrlDbIface struct {
+	// store *storage.UrlRec
+}
+
+func Init(debug bool) *UrlDbIface {
 
 	host := os.Getenv("APP_PG_HOST")
 	if host == "" {
@@ -70,7 +69,7 @@ func Init(debug bool) *IStorageImpl {
 	if err = DB.Ping(); err != nil {
 		log.Fatalln(err)
 	}
-	return &IStorageImpl{DB}
+	return &UrlDbIface{}
 }
 
 func сreateSchema() {
@@ -116,7 +115,7 @@ func checkUrl(longUrl string) string {
 	return ""
 }
 
-func (s IStorageImpl) AddLongUrl(longUrl string) (string, error) {
+func (s UrlDbIface) AddLongUrl(longUrl string) (string, error) {
 
 	stmt := `
 			INSERT INTO URL_TBL (id, short_url, long_url) VALUES ($1, $2, $3)
@@ -138,13 +137,13 @@ func (s IStorageImpl) AddLongUrl(longUrl string) (string, error) {
 	return short, nil
 }
 
-func (s *IStorageImpl) GetLongUrl(shortUrl string) (string, error) {
+func (s *UrlDbIface) GetLongUrl(shortUrl string) (string, error) {
 
 	long := ""
 	stmt := `SELECT long_url FROM url_tbl WHERE short_url = $1`
 
 	if err := DB.QueryRow(stmt, shortUrl).Scan(&long); err != nil {
-		fmt.Println("!!!Short:", shortUrl, "\n\nERROR:", err)
+		fmt.Println("DB SEARCH RESULT:",err)
 	}
 
 	if long == "" {
@@ -152,3 +151,4 @@ func (s *IStorageImpl) GetLongUrl(shortUrl string) (string, error) {
 	}
 	return long, nil
 }
+

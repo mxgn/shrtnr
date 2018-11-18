@@ -7,16 +7,20 @@ import (
 	"log"
 
 	_ "github.com/lib/pq"
-	"github.com/mxgn/url-shrtnr/app/application"
+	"github.com/mxgn/url-shrtnr/app/config"
 	"github.com/mxgn/url-shrtnr/app/helpers"
 )
 
 var DB *sql.DB
 var err error
+var debug bool
 
 type UrlDbIface struct{}
 
-func Init(cfg *application.DBcfg) *UrlDbIface {
+func Init(ctx *config.AppCtx) *UrlDbIface {
+
+	cfg := ctx.DBcfg
+	debug = ctx.Debug
 
 	DB, err = sql.Open("postgres", fmt.Sprintf(
 		"user=%s password=%s dbname=%s host=%s port=%s sslmode=disable",
@@ -49,7 +53,7 @@ func getNextId() int64 {
 			select nextval(pg_get_serial_sequence('url_tbl', 'id')) as nextId
 			`
 	var id int64
-	if err := DB.QueryRow(stmt).Scan(&id); err != nil {
+	if err := DB.QueryRow(stmt).Scan(&id); debug && err != nil {
 		log.Println("Error getting next Id: ", err)
 	}
 	log.Println("Got next id:", id)
@@ -63,8 +67,8 @@ func checkUrl(longUrl string) string {
 			SELECT short_url FROM url_tbl WHERE long_url = $1
 			`
 
-	if err := DB.QueryRow(stmt, longUrl).Scan(&short); err != nil {
-		log.Println(err)
+	if err := DB.QueryRow(stmt, longUrl).Scan(&short); debug && err != nil {
+		log.Println("DB.QueryRow err: ", err)
 	}
 
 	if short != "" {
@@ -91,8 +95,9 @@ func (s UrlDbIface) AddLongUrl(longUrl string) (string, error) {
 	if err != nil {
 		log.Println("Insert error:", err)
 	}
-	log.Println("Insert result:", res)
-
+	if debug {
+		log.Println("Insert result:", res)
+	}
 	return short, nil
 }
 
@@ -101,7 +106,7 @@ func (s *UrlDbIface) GetLongUrl(shortUrl string) (string, error) {
 	long := ""
 	stmt := `SELECT long_url FROM url_tbl WHERE short_url = $1`
 
-	if err := DB.QueryRow(stmt, shortUrl).Scan(&long); err != nil {
+	if err := DB.QueryRow(stmt, shortUrl).Scan(&long); debug && err != nil {
 		fmt.Println("DB SEARCH RESULT:", err)
 	}
 

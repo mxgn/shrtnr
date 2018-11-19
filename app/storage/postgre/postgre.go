@@ -62,11 +62,14 @@ func getNextId() int64 {
 
 func checkUrl(longUrl string) string {
 
+	log.Println("Entry to check url, with arg:", longUrl)
+
 	var short string
 	stmt := `
 			SELECT short_url FROM url_tbl WHERE long_url = $1
 			`
 
+	log.Println("Checking URL before add:", longUrl)
 	if err := DB.QueryRow(stmt, longUrl).Scan(&short); debug && err != nil {
 		log.Println("DB.QueryRow err: ", err)
 	}
@@ -80,6 +83,8 @@ func checkUrl(longUrl string) string {
 
 func (s UrlDbIface) AddLongUrl(longUrl string) (string, error) {
 
+	defer helpers.Un(helpers.Trace("postgre.AddLongUrl"))
+
 	stmt := `
 			INSERT INTO URL_TBL (id, short_url, long_url) VALUES ($1, $2, $3)
 			`
@@ -92,10 +97,8 @@ func (s UrlDbIface) AddLongUrl(longUrl string) (string, error) {
 	short := helpers.Encode(id)
 
 	res, err := DB.Exec(stmt, id, short, longUrl)
-	if err != nil {
+	if debug && err != nil {
 		log.Println("Insert error:", err)
-	}
-	if debug {
 		log.Println("Insert result:", res)
 	}
 	return short, nil
@@ -106,8 +109,8 @@ func (s *UrlDbIface) GetLongUrl(shortUrl string) (string, error) {
 	long := ""
 	stmt := `SELECT long_url FROM url_tbl WHERE short_url = $1`
 
-	if err := DB.QueryRow(stmt, shortUrl).Scan(&long); debug && err != nil {
-		fmt.Println("DB SEARCH RESULT:", err)
+	if err := DB.QueryRow(stmt, shortUrl).Scan(&long); debug {
+		fmt.Println("DB SEARCH RESULT:", long, err)
 	}
 
 	if long == "" {

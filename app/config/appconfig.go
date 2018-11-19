@@ -1,11 +1,12 @@
 package config
 
 import (
-	"log"
 	"os"
 	"path/filepath"
 
 	"github.com/mxgn/url-shrtnr/app/storage"
+	"github.com/sirupsen/logrus"
+	// log "github.com/sirupsen/logrus"
 )
 
 type AppContext struct {
@@ -14,6 +15,7 @@ type AppContext struct {
 	Port      string
 	DB        storage.UrlDbIface
 	DBcfg     DBcfg
+	Log       *logrus.Logger
 }
 
 type DBcfg struct {
@@ -24,23 +26,25 @@ type DBcfg struct {
 	Name string
 }
 
+var log *logrus.Logger
+
 func (app *AppContext) ReadConfig() {
+
+	log = app.Log
 
 	app.StaticDir = os.Getenv("APP_STATIC_DIR")
 	if app.StaticDir == "" {
 		app.StaticDir = getPath(app) + "\\www"
 	}
-	if app.Debug {
-		log.Println(`APP_STATIC_DIR:`, app.StaticDir)
-	}
+
+	log.Debug(`APP_STATIC_DIR:`, app.StaticDir)
 
 	app.Port = os.Getenv("APP_PORT")
 	if app.Port == "" {
 		app.Port = "80"
 	}
-	if app.Debug {
-		log.Println(`APP_PORT:`, app.Port)
-	}
+
+	log.Debug(`APP_PORT:`, app.Port)
 
 	//Postgre DB Settings init:
 
@@ -48,38 +52,29 @@ func (app *AppContext) ReadConfig() {
 	if app.DBcfg.Host == "" {
 		app.DBcfg.Host = "localhost"
 	}
-	if app.Debug {
-		log.Println(`APP_PG_HOST: `, app.DBcfg.Host)
-	}
+	log.Warn(`APP_PG_HOST: `, app.DBcfg.Host)
 
 	app.DBcfg.Port = os.Getenv("APP_PG_PORT")
 	if app.DBcfg.Port == "" {
 		app.DBcfg.Port = "5432"
 	}
-	if app.Debug {
-		log.Println(`APP_PG_PORT: `, app.DBcfg.Port)
-	}
+	log.Println(`APP_PG_PORT: `, app.DBcfg.Port)
 
 	app.DBcfg.User = os.Getenv("APP_PG_USER")
 	if app.DBcfg.User == "" {
 		app.DBcfg.User = "postgres"
 	}
-	if app.Debug {
-		log.Println(`APP_PG_USER: `, app.DBcfg.User)
-	}
+	log.Println(`APP_PG_USER: `, app.DBcfg.User)
 
 	app.DBcfg.Pass = os.Getenv("APP_PG_PASS")
-	if app.Debug {
-		log.Println(`APP_PG_PASS: `, app.DBcfg.Pass)
-	}
+	log.Println(`APP_PG_PASS: `, app.DBcfg.Pass)
 
 	app.DBcfg.Name = os.Getenv("APP_PG_DBNAME")
 	if app.DBcfg.Name == "" {
 		app.DBcfg.Name = app.DBcfg.User
 	}
-	if app.Debug {
-		log.Println(`APP_PG_DBNAME: `, app.DBcfg.Name)
-	}
+	log.Println(`APP_PG_DBNAME: `, app.DBcfg.Name)
+
 }
 
 func getPath(app *AppContext) string {

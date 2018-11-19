@@ -7,6 +7,8 @@ import (
 	"github.com/mxgn/url-shrtnr/app/config"
 )
 
+var err error
+
 func UrlRedirect(c *config.AppContext) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 
@@ -15,10 +17,6 @@ func UrlRedirect(c *config.AppContext) func(http.ResponseWriter, *http.Request) 
 		}
 
 		code := r.URL.Path[len("/"):]
-		if code == "" {
-			http.Redirect(w, r, "/static/index.html", http.StatusPermanentRedirect)
-			return
-		}
 
 		url, err := c.DB.GetLongUrl(code)
 		if err != nil {
@@ -35,18 +33,19 @@ func UrlRedirect(c *config.AppContext) func(http.ResponseWriter, *http.Request) 
 func UrlAdd(app *config.AppContext) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		test := r.URL.Query().Get("url")
-		log.Println("r.URL.QueryGet(\"url\"):", test)
+		log.Println(`r.PostFormValue("url"):`, r.PostFormValue("url"))
 
 		var response string
 
 		if url := r.PostFormValue("url"); url != "" {
 
-			shortResult, err := app.DB.GetLongUrl(url)
+			shortUrl := ""
+			shortUrl, err = app.DB.AddLongUrl(url)
 			if err != nil {
-				log.Panicln(`URL ADD ERROR:`, err)
+				log.Panicln("CANNOT ADD URL:", err)
 			}
-			linkUrl := "http://localhost/" + shortResult
+
+			linkUrl := "http://localhost/" + shortUrl
 			response = "<a href=\"" + linkUrl + "\">" + linkUrl + "</a>"
 
 		} else {
@@ -54,5 +53,13 @@ func UrlAdd(app *config.AppContext) func(http.ResponseWriter, *http.Request) {
 		}
 
 		w.Write([]byte(response))
+	}
+}
+
+func UrlRedirectIndex(c *config.AppContext) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		http.Redirect(w, r, "/static/index.html", http.StatusPermanentRedirect)
+		return
 	}
 }

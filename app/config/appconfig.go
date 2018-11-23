@@ -4,8 +4,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/cihub/seelog"
 	"github.com/mxgn/url-shrtnr/app/storage"
-	"github.com/sirupsen/logrus"
 	// log "github.com/sirupsen/logrus"
 )
 
@@ -15,7 +15,7 @@ type AppContext struct {
 	Port      string
 	DB        storage.UrlDbIface
 	DBcfg     DBcfg
-	Log       *logrus.Logger
+	Log       seelog.LoggerInterface
 }
 
 type DBcfg struct {
@@ -26,7 +26,7 @@ type DBcfg struct {
 	Name string
 }
 
-var log *logrus.Logger
+var log seelog.LoggerInterface
 
 func (app *AppContext) ReadConfig() {
 
@@ -58,22 +58,22 @@ func (app *AppContext) ReadConfig() {
 	if app.DBcfg.Port == "" {
 		app.DBcfg.Port = "5432"
 	}
-	log.Println(`APP_PG_PORT: `, app.DBcfg.Port)
+	log.Debug(`APP_PG_PORT: `, app.DBcfg.Port)
 
 	app.DBcfg.User = os.Getenv("APP_PG_USER")
 	if app.DBcfg.User == "" {
 		app.DBcfg.User = "postgres"
 	}
-	log.Println(`APP_PG_USER: `, app.DBcfg.User)
+	log.Debug(`APP_PG_USER: `, app.DBcfg.User)
 
 	app.DBcfg.Pass = os.Getenv("APP_PG_PASS")
-	log.Println(`APP_PG_PASS: `, app.DBcfg.Pass)
+	log.Debug(`APP_PG_PASS: `, app.DBcfg.Pass)
 
 	app.DBcfg.Name = os.Getenv("APP_PG_DBNAME")
 	if app.DBcfg.Name == "" {
 		app.DBcfg.Name = app.DBcfg.User
 	}
-	log.Println(`APP_PG_DBNAME: `, app.DBcfg.Name)
+	log.Debug(`APP_PG_DBNAME: `, app.DBcfg.Name)
 
 }
 
@@ -82,10 +82,10 @@ func getPath(app *AppContext) string {
 	dir, err := filepath.Abs(".") // check how it works? how get all runtime vars?
 
 	if err != nil {
-		log.Fatal(`APP_EXEC_DIR FAILED:`, err)
+		log.Critical(`APP_EXEC_DIR FAILED:`, err)
 	}
 	if app.Debug {
-		log.Println(`APP_EXEC_DIR:`, dir)
+		log.Debug(`APP_EXEC_DIR:`, dir)
 	}
 
 	return dir

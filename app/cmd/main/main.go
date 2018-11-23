@@ -2,32 +2,34 @@ package main
 
 import (
 	"net/http"
-	"os"
 
 	"github.com/gorilla/mux"
 	"github.com/mxgn/url-shrtnr/app/config"
 	"github.com/mxgn/url-shrtnr/app/handlers"
 	"github.com/mxgn/url-shrtnr/app/storage/postgre"
-	"github.com/sirupsen/logrus"
-)
 
-var log = logrus.New()
+	log "github.com/cihub/seelog"
+)
 
 func main() {
 
 	// log.SetFlags(log.LstdFlags &^ (log.Ldate | log.Ltime))
 	// log.SetFlags(log.Lshortfile)
 
-	log.Out = os.Stdout
-	log.SetReportCaller(true)
-	log.SetFormatter(&logrus.TextFormatter{
-		DisableColors:    false,
-		FullTimestamp:    false,
-		DisableTimestamp: true,
-		QuoteEmptyFields: true,
-	})
+	testConfig := `
+<seelog minlevel="trace" type="sync">
+	<outputs formatid="main">
+		<console/>
+	</outputs>
+	<formats>
+		<format id="main" format="%File:%FuncShort:%Line: %Msg%n"/>
+	</formats>
+</seelog>`
 
-	app := &config.AppContext{Debug: true, Log: log}
+	logger, _ := log.LoggerFromConfigAsBytes([]byte(testConfig))
+	log.ReplaceLogger(logger)
+
+	app := &config.AppContext{Debug: true, Log: logger}
 
 	app.ReadConfig()
 
@@ -41,7 +43,7 @@ func main() {
 	r.HandleFunc("/api/add/", handlers.UrlAdd(app)).Methods("POST")
 	r.HandleFunc("/{^[A-Za-z0-9]+$}", handlers.UrlRedirect(app)).Methods("GET")
 	http.Handle("/", r)
-	log.Fatal(http.ListenAndServe(":"+app.Port, nil))
+	log.Critical(http.ListenAndServe(":"+app.Port, nil))
 
 	// r := mux.NewRouter()
 	// fs := http.FileServer(http.Dir(app.StaticDir))

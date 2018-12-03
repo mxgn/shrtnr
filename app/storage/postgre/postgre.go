@@ -4,33 +4,34 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"log"
 
 	_ "github.com/lib/pq"
+	"github.com/mxgn/seelog"
 	"github.com/mxgn/url-shrtnr/app/config"
 	"github.com/mxgn/url-shrtnr/app/helpers"
 )
 
 var DB *sql.DB
+var log seelog.LoggerInterface
 var err error
 var debug bool
 
 type UrlDbIface struct{}
 
-func Init(ctx *config.AppContext) *UrlDbIface {
+func Init(c *config.AppContext) *UrlDbIface {
 
-	cfg := ctx.DBcfg
-	debug = ctx.Debug
+	cfg := c.DBcfg
+	log = c.Log
 
 	DB, err = sql.Open("postgres", fmt.Sprintf(
 		"user=%s password=%s dbname=%s host=%s port=%s sslmode=disable",
 		cfg.User, cfg.Pass, cfg.Name, cfg.Host, cfg.Port))
 	if err != nil {
-		log.Fatalln(err)
+		log.Critical(err)
 	}
 
 	if err = DB.Ping(); err != nil {
-		log.Fatalln(err)
+		log.Critical(err)
 	}
 	return &UrlDbIface{}
 }
@@ -44,7 +45,7 @@ func CreateSchema() {
 				long_url   text   UNIQUE NOT NULL
 			)`
 	if _, err := DB.Exec(stmt); err != nil {
-		log.Fatalln("URL table create error:", err)
+		log.Critical("URL table create error:", err)
 	}
 }
 
@@ -54,28 +55,28 @@ func getNextId() int64 {
 			`
 	var id int64
 	if err := DB.QueryRow(stmt).Scan(&id); debug && err != nil {
-		log.Println("Error getting next Id: ", err)
+		log.Error("Error getting next Id: ", err)
 	}
-	log.Println("Got next id:", id)
+	log.Info("Got next id:", id)
 	return id
 }
 
 func checkUrl(longUrl string) string {
 
-	log.Println("Entry to check url, with arg:", longUrl)
+	log.Debug("Entry to check url, with arg:", longUrl)
 
 	var short string
 	stmt := `
 			SELECT short_url FROM url_tbl WHERE long_url = $1
 			`
 
-	log.Println("Checking URL before add:", longUrl)
+	log.Trace("Checking URL before add:", longUrl)
 	if err := DB.QueryRow(stmt, longUrl).Scan(&short); debug && err != nil {
-		log.Println("DB.QueryRow err: ", err)
+		log.Error("DB.QueryRow err: ", err)
 	}
 
 	if short != "" {
-		log.Println("Url \"", longUrl, "\" exists, key:", short)
+		log.Info("Url \"", longUrl, "\" exists, key:", short)
 		return short
 	}
 	return ""
@@ -98,8 +99,8 @@ func (s UrlDbIface) AddLongUrl(longUrl string) (string, error) {
 
 	res, err := DB.Exec(stmt, id, short, longUrl)
 	if debug && err != nil {
-		log.Println("Insert error:", err)
-		log.Println("Insert result:", res)
+		log.Error("Insert error:", err)
+		log.Error("Insert result:", res)
 	}
 	return short, nil
 }
@@ -109,9 +110,10 @@ func (s *UrlDbIface) GetLongUrl(shortUrl string) (string, error) {
 	long := ""
 	stmt := `SELECT long_url FROM url_tbl WHERE short_url = $1`
 
-	if err := DB.QueryRow(stmt, shortUrl).Scan(&long); debug {
-		fmt.Println("DB SEARCH RESULT:", long, err)
+	if err := DB.QueryRow(stmt, shortUrl).Scan(&long); err != nil {
+		log.Error("stmt: %v\n result: %v", stmt, err)
 	}
+	log.Infof("DB SEARCH RESULT: %v", long)
 
 	if long == "" {
 		return "", errors.New("Short url " + shortUrl + " doesnt exists")

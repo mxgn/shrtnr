@@ -16,6 +16,7 @@ schema:
     watcher:
       paths:
         - /
+        - ../../
       extensions:
         - go
         - html

@@ -4,13 +4,11 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/cihub/seelog"
+	"github.com/mxgn/seelog"
 	"github.com/mxgn/url-shrtnr/app/storage"
-	// log "github.com/sirupsen/logrus"
 )
 
 type AppContext struct {
-	Debug     bool
 	StaticDir string
 	Port      string
 	DB        storage.UrlDbIface
@@ -28,65 +26,60 @@ type DBcfg struct {
 
 var log seelog.LoggerInterface
 
-func (app *AppContext) ReadConfig() {
+func (c *AppContext) Init() {
 
-	log = app.Log
+	log = c.Log
 
-	app.StaticDir = os.Getenv("APP_STATIC_DIR")
-	if app.StaticDir == "" {
-		app.StaticDir = getPath(app) + "\\www"
+	c.StaticDir = os.Getenv("APP_STATIC_DIR")
+	if c.StaticDir == "" {
+		c.StaticDir = getPath(c) + "\\www"
 	}
+	log.Debug(`APP_STATIC_DIR:`, c.StaticDir)
 
-	log.Debug(`APP_STATIC_DIR:`, app.StaticDir)
-
-	app.Port = os.Getenv("APP_PORT")
-	if app.Port == "" {
-		app.Port = "80"
+	c.Port = os.Getenv("APP_PORT")
+	if c.Port == "" {
+		c.Port = "80"
 	}
-
-	log.Debug(`APP_PORT:`, app.Port)
+	log.Debug(`APP_PORT:`, c.Port)
 
 	//Postgre DB Settings init:
-
-	app.DBcfg.Host = os.Getenv("APP_PG_HOST")
-	if app.DBcfg.Host == "" {
-		app.DBcfg.Host = "localhost"
+	c.DBcfg.Host = os.Getenv("APP_PG_HOST")
+	if c.DBcfg.Host == "" {
+		c.DBcfg.Host = "localhost"
 	}
-	log.Warn(`APP_PG_HOST: `, app.DBcfg.Host)
+	log.Debug(`APP_PG_HOST: `, c.DBcfg.Host)
 
-	app.DBcfg.Port = os.Getenv("APP_PG_PORT")
-	if app.DBcfg.Port == "" {
-		app.DBcfg.Port = "5432"
+	c.DBcfg.Port = os.Getenv("APP_PG_PORT")
+	if c.DBcfg.Port == "" {
+		c.DBcfg.Port = "5432"
 	}
-	log.Debug(`APP_PG_PORT: `, app.DBcfg.Port)
+	log.Debug(`APP_PG_PORT: `, c.DBcfg.Port)
 
-	app.DBcfg.User = os.Getenv("APP_PG_USER")
-	if app.DBcfg.User == "" {
-		app.DBcfg.User = "postgres"
+	c.DBcfg.User = os.Getenv("APP_PG_USER")
+	if c.DBcfg.User == "" {
+		c.DBcfg.User = "postgres"
 	}
-	log.Debug(`APP_PG_USER: `, app.DBcfg.User)
+	log.Debug(`APP_PG_USER: `, c.DBcfg.User)
 
-	app.DBcfg.Pass = os.Getenv("APP_PG_PASS")
-	log.Debug(`APP_PG_PASS: `, app.DBcfg.Pass)
+	c.DBcfg.Pass = os.Getenv("APP_PG_PASS")
+	log.Debug(`APP_PG_PASS: `, c.DBcfg.Pass)
 
-	app.DBcfg.Name = os.Getenv("APP_PG_DBNAME")
-	if app.DBcfg.Name == "" {
-		app.DBcfg.Name = app.DBcfg.User
+	c.DBcfg.Name = os.Getenv("APP_PG_DBNAME")
+	if c.DBcfg.Name == "" {
+		c.DBcfg.Name = c.DBcfg.User
 	}
-	log.Debug(`APP_PG_DBNAME: `, app.DBcfg.Name)
+	log.Debug(`APP_PG_DBNAME: `, c.DBcfg.Name)
 
 }
 
-func getPath(app *AppContext) string {
+func getPath(с *AppContext) string {
 
 	dir, err := filepath.Abs(".") // check how it works? how get all runtime vars?
-
 	if err != nil {
 		log.Critical(`APP_EXEC_DIR FAILED:`, err)
 	}
-	if app.Debug {
-		log.Debug(`APP_EXEC_DIR:`, dir)
-	}
+
+	log.Debug(`APP_EXEC_DIR:`, dir)
 
 	return dir
 }

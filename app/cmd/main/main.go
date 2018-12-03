@@ -6,9 +6,10 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/mxgn/url-shrtnr/app/config"
 	"github.com/mxgn/url-shrtnr/app/handlers"
+	"github.com/mxgn/url-shrtnr/app/helpers"
 	"github.com/mxgn/url-shrtnr/app/storage/postgre"
 
-	log "github.com/cihub/seelog"
+	log "github.com/mxgn/seelog"
 )
 
 func main() {
@@ -17,40 +18,41 @@ func main() {
 	// log.SetFlags(log.Lshortfile)
 
 	testConfig := `
-<seelog minlevel="trace" type="sync">
-	<outputs formatid="main">
-		<console/>
-	</outputs>
-	<formats>
-		<format id="main" format="%File:%FuncShort:%Line: %Msg%n"/>
-	</formats>
-</seelog>`
-
+	<seelog minlevel="trace" type="sync">
+		<outputs formatid="main">
+			<console/>
+		</outputs>
+		<formats>
+			<format id="main" format="%File: %FuncShort %Line: %Msg%n"/>
+		</formats>
+	</seelog>`
 	logger, _ := log.LoggerFromConfigAsBytes([]byte(testConfig))
 	log.ReplaceLogger(logger)
 
-	app := &config.AppContext{Debug: true, Log: logger}
+	c := &config.AppContext{Log: logger}
+	c.Init()
 
-	app.ReadConfig()
+	handlers.Init(c)
+	helpers.Init(c)
 
-	app.DB = postgre.Init(app)
+	c.DB = postgre.Init(c)
 	// postgre.CreateSchema()
 
 	r := mux.NewRouter()
-	fs := http.FileServer(http.Dir(app.StaticDir))
+	fs := http.FileServer(http.Dir(c.StaticDir))
 	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", fs)).Methods("GET")
-	r.HandleFunc("/", handlers.UrlRedirectIndex(app)).Methods("GET")
-	r.HandleFunc("/api/add/", handlers.UrlAdd(app)).Methods("POST")
-	r.HandleFunc("/{^[A-Za-z0-9]+$}", handlers.UrlRedirect(app)).Methods("GET")
+	r.HandleFunc("/", handlers.UrlRedirectIndex(c)).Methods("GET")
+	r.HandleFunc("/api/add/", handlers.UrlAdd(c)).Methods("POST")
+	r.HandleFunc("/{^[A-Za-z0-9]+$}", handlers.UrlRedirect(c)).Methods("GET")
 	http.Handle("/", r)
-	log.Critical(http.ListenAndServe(":"+app.Port, nil))
+	log.Critical(http.ListenAndServe(":"+c.Port, nil))
 
 	// r := mux.NewRouter()
-	// fs := http.FileServer(http.Dir(app.StaticDir))
+	// fs := http.FileServer(http.Dir(c.StaticDir))
 	// r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", fs)).Methods("GET")
 	// http.Handle("/static/", r)
-	// http.Handle("/api/add/", handlers.Handler{Ctx: app, H: handlers.AddNew})
-	// http.Handle("/", handlers.Handler{Ctx: app, H: handlers.RedirectNew})
-	// log.Fatal(http.ListenAndServe(":"+app.Port, nil))
+	// http.Handle("/api/add/", handlers.Handler{Ctx: c, H: handlers.AddNew})
+	// http.Handle("/", handlers.Handler{Ctx: c, H: handlers.RedirectNew})
+	// log.Fatal(http.ListenAndServe(":"+c.Port, nil))
 
 }

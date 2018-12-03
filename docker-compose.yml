@@ -14,7 +14,7 @@ services:
     links:
       - pgdb
     environment:
-      GO_WORK_DIR: ${GO_PROJECT_DIR}/app
+      GO_WORK_DIR: ${GO_PROJECT_DIR}/app/cmd/main
 
       APP_PORT: 8080
       APP_STATIC_DIR: /var/www/

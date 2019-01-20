@@ -6,7 +6,6 @@ import (
 	"fmt"
 
 	_ "github.com/lib/pq"
-	"github.com/mxgn/seelog"
 	"github.com/mxgn/url-shrtnr/app/config"
 	"github.com/mxgn/url-shrtnr/app/helpers"
 )

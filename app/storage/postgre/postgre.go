@@ -11,39 +11,41 @@ import (
 	"github.com/mxgn/url-shrtnr/app/helpers"
 )
 
-var DB *sql.DB
-var err error
-var debug bool
+type dbImpl struct{}
 
-type UrlDbIface struct{}
+var (
+	db    *sql.DB
+	err   error
+	debug bool
+)
 
-func Init(ctx *config.AppContext) *UrlDbIface {
+func Init(ctx *config.AppContext) *dbImpl {
 
 	cfg := ctx.DBcfg
 	debug = ctx.Debug
 
-	DB, err = sql.Open("postgres", fmt.Sprintf(
+	db, err = sql.Open("postgres", fmt.Sprintf(
 		"user=%s password=%s dbname=%s host=%s port=%s sslmode=disable",
 		cfg.User, cfg.Pass, cfg.Name, cfg.Host, cfg.Port))
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	if err = DB.Ping(); err != nil {
+	if err = db.Ping(); err != nil {
 		log.Fatalln(err)
 	}
-	return &UrlDbIface{}
+	return &dbImpl{}
 }
 
 func CreateSchema() {
-	DB.Exec(`DROP TABLE URL_TBL`)
+	db.Exec(`DROP TABLE URL_TBL`)
 	stmt := `
 			CREATE TABLE IF NOT EXISTS URL_TBL (
 				id         serial UNIQUE NOT NULL,
 				short_url  text   UNIQUE NOT NULL,
 				long_url   text   UNIQUE NOT NULL
 			)`
-	if _, err := DB.Exec(stmt); err != nil {
+	if _, err := db.Exec(stmt); err != nil {
 		log.Fatalln("URL table create error:", err)
 	}
 }
@@ -53,7 +55,7 @@ func getNextId() int64 {
 			select nextval(pg_get_serial_sequence('url_tbl', 'id')) as nextId
 			`
 	var id int64
-	if err := DB.QueryRow(stmt).Scan(&id); debug && err != nil {
+	if err := db.QueryRow(stmt).Scan(&id); debug && err != nil {
 		log.Println("Error getting next Id: ", err)
 	}
 	log.Println("Got next id:", id)
@@ -70,7 +72,7 @@ func checkUrl(longUrl string) string {
 			`
 
 	log.Println("Checking URL before add:", longUrl)
-	if err := DB.QueryRow(stmt, longUrl).Scan(&short); debug && err != nil {
+	if err := db.QueryRow(stmt, longUrl).Scan(&short); debug && err != nil {
 		log.Println("DB.QueryRow err: ", err)
 	}
 
@@ -81,7 +83,7 @@ func checkUrl(longUrl string) string {
 	return ""
 }
 
-func (s UrlDbIface) AddLongUrl(longUrl string) (string, error) {
+func (s *dbImpl) AddLongUrl(longUrl string) (string, error) {
 
 	defer helpers.Un(helpers.Trace("postgre.AddLongUrl"))
 
@@ -96,7 +98,7 @@ func (s UrlDbIface) AddLongUrl(longUrl string) (string, error) {
 	id := getNextId()
 	short := helpers.Encode(id)
 
-	res, err := DB.Exec(stmt, id, short, longUrl)
+	res, err := db.Exec(stmt, id, short, longUrl)
 	if debug && err != nil {
 		log.Println("Insert error:", err)
 		log.Println("Insert result:", res)
@@ -104,12 +106,12 @@ func (s UrlDbIface) AddLongUrl(longUrl string) (string, error) {
 	return short, nil
 }
 
-func (s *UrlDbIface) GetLongUrl(shortUrl string) (string, error) {
+func (s *dbImpl) GetLongUrl(shortUrl string) (string, error) {
 
 	long := ""
 	stmt := `SELECT long_url FROM url_tbl WHERE short_url = $1`
 
-	if err := DB.QueryRow(stmt, shortUrl).Scan(&long); debug {
+	if err := db.QueryRow(stmt, shortUrl).Scan(&long); debug {
 		fmt.Println("DB SEARCH RESULT:", long, err)
 	}
 

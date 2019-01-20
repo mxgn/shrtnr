@@ -5,6 +5,15 @@ import (
 	"strings"
 )
 
+type UrlDbIface interface {
+	AddLongUrl(string) (string, error)
+	GetLongUrl(string) (string, error)
+	// Search(r UrlRec) (chan *UrlSearch, error)
+}
+
+//
+//----------------
+//
 // NotFoundError indicates that a record could not be located.
 // This differentiates between not finding a record and the
 // storage layer having an error.
@@ -50,10 +59,4 @@ type UrlSearch struct {
 	Rec *UrlRec
 	// Err exists if the storage system had an error mid search.
 	Err error
-}
-
-type UrlDbIface interface {
-	AddLongUrl(string) (string, error)
-	GetLongUrl(string) (string, error)
-	// Search(r UrlRec) (chan *UrlSearch, error)
 }

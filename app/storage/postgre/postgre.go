@@ -4,9 +4,9 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"log"
 
 	_ "github.com/lib/pq"
+	"github.com/mxgn/seelog"
 	"github.com/mxgn/url-shrtnr/app/config"
 	"github.com/mxgn/url-shrtnr/app/helpers"
 )
@@ -21,14 +21,14 @@ var (
 
 func Init(ctx *config.AppContext) *dbImpl {
 
-	cfg := ctx.DBcfg
-	debug = ctx.Debug
+	cfg := c.DBcfg
+	log = c.Log
 
 	db, err = sql.Open("postgres", fmt.Sprintf(
 		"user=%s password=%s dbname=%s host=%s port=%s sslmode=disable",
 		cfg.User, cfg.Pass, cfg.Name, cfg.Host, cfg.Port))
 	if err != nil {
-		log.Fatalln(err)
+		log.Critical(err)
 	}
 
 	if err = db.Ping(); err != nil {
@@ -58,13 +58,13 @@ func getNextId() int64 {
 	if err := db.QueryRow(stmt).Scan(&id); debug && err != nil {
 		log.Println("Error getting next Id: ", err)
 	}
-	log.Println("Got next id:", id)
+	log.Info("Got next id:", id)
 	return id
 }
 
 func checkUrl(longUrl string) string {
 
-	log.Println("Entry to check url, with arg:", longUrl)
+	log.Debug("Entry to check url, with arg:", longUrl)
 
 	var short string
 	stmt := `
@@ -77,7 +77,7 @@ func checkUrl(longUrl string) string {
 	}
 
 	if short != "" {
-		log.Println("Url \"", longUrl, "\" exists, key:", short)
+		log.Info("Url \"", longUrl, "\" exists, key:", short)
 		return short
 	}
 	return ""
@@ -100,8 +100,8 @@ func (s *dbImpl) AddLongUrl(longUrl string) (string, error) {
 
 	res, err := db.Exec(stmt, id, short, longUrl)
 	if debug && err != nil {
-		log.Println("Insert error:", err)
-		log.Println("Insert result:", res)
+		log.Error("Insert error:", err)
+		log.Error("Insert result:", res)
 	}
 	return short, nil
 }
@@ -114,6 +114,7 @@ func (s *dbImpl) GetLongUrl(shortUrl string) (string, error) {
 	if err := db.QueryRow(stmt, shortUrl).Scan(&long); debug {
 		fmt.Println("DB SEARCH RESULT:", long, err)
 	}
+	log.Infof("DB SEARCH RESULT: %v", long)
 
 	if long == "" {
 		return "", errors.New("Short url " + shortUrl + " doesnt exists")

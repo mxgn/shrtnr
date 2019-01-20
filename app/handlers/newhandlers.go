@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"fmt"
-	"log"
+
 	"net/http"
 
 	"github.com/mxgn/url-shrtnr/app/config"
@@ -46,7 +46,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		case Error:
 			// We can retrieve the status here and write out a specific
 			// HTTP status code.
-			log.Printf("HTTP %d - %s", e.Status(), e)
+			h.Ctx.Log.Error("HTTP %d - %s", e.Status(), e)
 			http.Error(w, e.Error(), e.Status())
 		default:
 			// Any error types we don't specifically look out for default
@@ -79,19 +79,19 @@ func RedirectNew(ctx *config.AppContext, w http.ResponseWriter, r *http.Request)
 	return nil
 }
 
-func AddNew(app *config.AppContext, w http.ResponseWriter, r *http.Request) error {
+func AddNew(c *config.AppContext, w http.ResponseWriter, r *http.Request) error {
 
 	// test := r.URL.Query().Get("url")
-	log.Println(`Post form "url" param value:`, r.PostFormValue("url"))
+	c.Log.Info(`Post form "url" param value:`, r.PostFormValue("url"))
 
 	var response string
 
 	if url := r.PostFormValue("url"); url != "" {
 
 		shortUrl := ""
-		shortUrl, err = app.DB.AddLongUrl(url)
+		shortUrl, err = c.DB.AddLongUrl(url)
 		if err != nil {
-			log.Panicln("CANNOT ADD URL:", err)
+			c.Log.Critical("CANNOT ADD URL:", err)
 		}
 
 		linkUrl := "http://localhost/" + shortUrl
